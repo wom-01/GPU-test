@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>界云算力 API 接口 · 算力并网接口中心</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/static/swagger-ui/swagger-ui.css">
+<link rel="stylesheet" href="/static/docs/docs.css?v=8">
+</head>
+<body>
+<script id="docs-cfg" type="application/json">__DOCS_CFG__</script>
+
+<!-- ───────── 顶栏 ───────── -->
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="目录">☰</button>
+  <div class="brand"><span class="logo">⚡</span><span class="brand-name">界云算力</span><span class="brand-sub">API 接口</span></div>
+  <span class="env-badge" id="envBadge"></span>
+  <div class="topbar-right">
+    <button class="baseurl" id="baseUrlBtn" title="点击复制接口基址"><span class="muted">基址</span> <code id="baseUrl"></code><span class="copy-ic">⧉</span></button>
+    <span class="token-pill" id="tokenPill"><i></i><span>未认证</span></span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ───────── 侧栏 ───────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-group">
+      <div class="side-title">快速开始</div>
+      <a class="side-link" href="#sec-auth"><span class="num">1</span>获取令牌</a>
+      <a class="side-link" href="#sec-pool"><span class="num">2</span>查看资源池</a>
+      <a class="side-link" href="#sec-flow"><span class="num">3</span>业务流程</a>
+      <a class="side-link" href="#sec-api"><span class="num">4</span>在线调试</a>
+    </div>
+    <div class="side-group">
+      <div class="side-title">接口目录</div>
+      <div id="sideApis"><div class="side-loading">加载中…</div></div>
+    </div>
+    <div class="side-group">
+      <div class="side-title">参考</div>
+      <a class="side-link" href="#sec-ref">订单类型 / 开通状态</a>
+      <a class="side-link" href="#sec-ref">认证方式</a>
+    </div>
+  </aside>
+
+  <!-- ───────── 主体 ───────── -->
+  <main class="main">
+    <section class="hero">
+      <div class="hero-text">
+        <div class="eyebrow">第三方在线并网对接技术规范 v3.0 · 第 11 章</div>
+        <h1>界云算力 API 接口</h1>
+        <p>算力交易运营平台通过本组接口完成<b>资源上报、预占、开通、监控与订单全生命周期</b>管理。
+           敏感字段全程 AES 加密，开通采用异步受理 + 轮询结果。</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-v" id="statApis">10</div><div class="stat-k">接口</div></div>
+        <div class="stat"><div class="stat-v">3</div><div class="stat-k">认证方式</div></div>
+        <div class="stat"><div class="stat-v" id="statHosts">—</div><div class="stat-k">在售主机</div></div>
+        <div class="stat"><div class="stat-v" id="statGpus">—</div><div class="stat-k">可售加速卡</div></div>
+      </div>
+    </section>
+
+    <!-- 1 认证 -->
+    <section class="card" id="sec-auth">
+      <div class="card-head">
+        <div><span class="step">1</span><h2>获取访问令牌</h2></div>
+        <span class="card-tip">令牌长期有效（无时效限制）· 获取后自动应用到下方所有接口</span>
+      </div>
+      <div class="auth-body">
+        <div class="auth-form" id="authForm">
+          <label>账号<input id="authUser" autocomplete="username" value="jusuan_ops"></label>
+          <label>口令<input id="authPass" type="password" autocomplete="current-password" placeholder="通过安全渠道获取"></label>
+          <label>有效期<div class="ttl-chips" id="ttlChips"></div></label>
+          <button class="btn primary" id="authBtn">获取令牌</button>
+        </div>
+        <div class="auth-demo" id="authDemo" hidden>
+          <button class="btn primary big" id="demoBtn">⚡ 一键获取演示令牌</button>
+          <div class="ttl-chips" id="ttlChipsDemo"></div>
+          <span class="muted">演示环境已内置账号，点击即可</span>
+        </div>
+        <div class="token-box" id="tokenBox" hidden>
+          <div class="token-row">
+            <span class="ok-dot"></span><b>已认证</b>
+            <span class="muted" id="tokenExp"></span>
+            <button class="btn ghost sm" id="copyToken">复制令牌</button>
+            <button class="btn ghost sm" id="clearToken">更换令牌</button>
+          </div>
+          <code class="token-val" id="tokenVal"></code>
+        </div>
+        <div class="auth-err" id="authErr" hidden></div>
+      </div>
+    </section>
+
+    <!-- 2 资源池 -->
+    <section class="card" id="sec-pool">
+      <div class="card-head">
+        <div><span class="step">2</span><h2>可售算力资源池</h2></div>
+        <button class="btn ghost sm" id="poolRefresh">↻ 刷新</button>
+      </div>
+      <div class="pool-filter" id="poolFilter" hidden></div>
+      <div class="pool" id="pool"><div class="empty">获取令牌后自动加载 <code>host/collect</code> 实时资源</div></div>
+    </section>
+
+    <!-- 3 流程 -->
+    <section class="card" id="sec-flow">
+      <div class="card-head"><div><span class="step">3</span><h2>业务流程</h2></div>
+        <span class="card-tip">点击任一环节跳转到对应接口</span></div>
+      <div class="flow" id="flow"></div>
+    </section>
+
+    <!-- 4 调试 -->
+    <section class="card api-card" id="sec-api">
+      <div class="card-head"><div><span class="step">4</span><h2>接口在线调试</h2></div>
+        <span class="card-tip">展开接口 → Try it out → 填写参数 → Execute</span></div>
+      <div id="swagger-ui"></div>
+    </section>
+
+    <!-- 参考 -->
+    <section class="card" id="sec-ref">
+      <div class="card-head"><div><span class="step">ⓘ</span><h2>参考</h2></div></div>
+      <div class="ref-grid">
+        <div>
+          <h3>订单操作 orderType</h3>
+          <table class="ref"><tr><th>值</th><th>含义</th><th>说明</th></tr>
+            <tr><td><code>104</code></td><td>暂停</td><td>停止服务，保留数据</td></tr>
+            <tr><td><code>105</code></td><td>恢复</td><td>从暂停恢复服务</td></tr>
+            <tr><td><code>107</code></td><td>预销户</td><td>进入 15 天冷静期，数据保留</td></tr>
+            <tr><td><code>108</code></td><td>撤销预销户</td><td>冷静期内反悔，订单恢复</td></tr>
+            <tr><td><code>109</code></td><td>正式销户</td><td>清除凭证，主机回收入池</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>开通状态 openCode</h3>
+          <table class="ref"><tr><th>值</th><th>含义</th></tr>
+            <tr><td><code>4</code></td><td><span class="tag warn">开通中</span> 平台每 1 分钟轮询</td></tr>
+            <tr><td><code>0</code></td><td><span class="tag ok">开通成功</span> 返回 AES 加密凭证</td></tr>
+            <tr><td><code>2</code></td><td><span class="tag bad">开通失败</span> openMsg 给出原因</td></tr>
+          </table>
+          <h3>认证方式（Authorization 头）</h3>
+          <table class="ref"><tr><th>方式</th><th>格式</th></tr>
+            <tr><td>① 令牌</td><td><code>Bearer &lt;accessToken&gt;</code></td></tr>
+            <tr><td>② AES 密钥</td><td><code>AES(thirdOSid|Timestamp|Nonce)</code></td></tr>
+            <tr><td>③ Hmac-SM3</td><td>MAC 签名，规则见对接说明</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+    <footer class="foot">界云算力 · 算力并网三方系统接口 · <a href="/openapi.json" target="_blank">openapi.json</a> · <a href="/healthz" target="_blank">健康检查</a></footer>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/static/swagger-ui/swagger-ui-bundle.js"></script>
+<script src="/static/docs/docs.js?v=9"></script>
+</body>
+</html>
