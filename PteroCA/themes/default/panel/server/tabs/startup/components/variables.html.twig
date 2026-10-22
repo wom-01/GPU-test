@@ -1,0 +1,54 @@
+{% block main %}
+    {% if serverData.pterodactylServer.relationships.variables|length > 0 %}
+        <div class="row">
+            <div class="col-12">
+                <h3>{{ 'pteroca.server.variables'|trans }}</h3>
+            </div>
+            {% for key, variable in serverData.pterodactylServer.relationships.variables %}
+                {% if serverData.productEggConfiguration.variables[variable.id].user_viewable is defined or isAdminView %}
+                    <div class="col-12 col-xl-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    {{ variable.name }}
+                                    <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ variable.description }}"><i class="fas fa-xs fa-info-circle"></i></span>
+                                    {% if serverData.productEggConfiguration.variables[variable.id].user_editable is not defined %}
+                                        <span class="badge bg-secondary text-white">{{ 'pteroca.server.read_only'|trans }}</span>
+                                    {% endif %}
+                                    {% if isAdminView %}
+                                        <span class="badge bg-warning text-white">{{ 'pteroca.server.admin_view'|trans }}</span>
+                                    {% endif %}
+                                    {% if not server.isSuspended and (serverData.productEggConfiguration.variables[variable.id].user_editable is defined or isAdminView) and hasServerPermission(serverData.serverPermissions, 'startup.update') %}
+                                        <a class="float-end hover-pointer" onclick="toggleSetting('{{ variable.env_variable }}')">
+                                            <i class="fas fa-edit text-white" data-option-name="{{ variable.env_variable }}"></i>
+                                        </a>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% set serverVariable = serverData.serverVariables.getByEnvVariable(variable.env_variable) %}
+                                    {% if serverVariable.rules|length > 0 %}
+                                        <div class="col-12 d-none server-variables" data-option-name="{{ variable.env_variable }}">
+                                            <div class="d-flex flex-wrap gap-1 align-items-center mt-1 mb-2">
+                                                <small class="text-muted me-1">{{ 'pteroca.server.rules'|trans }}:</small>
+                                                {% for rule in serverVariable.rules %}
+                                                    <span class="px-1 rounded-1 font-monospace text-secondary border border-secondary-subtle server-variable" data-rule="{{ rule }}" style="font-size:0.7rem;background:rgba(108,117,125,0.08)">{{ rule }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    <div class="col-12">
+                                        <div class="form-widget">
+                                            <input type="text" class="form-control" data-option-name="{{ variable.env_variable }}" data-rules="{{ serverVariable.rules|join('|') }}" value="{{ serverVariable.serverValue }}" {% if serverData.productEggConfiguration.variables[variable.id].user_editable is not defined and not isAdminView %}disabled{% endif %} readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

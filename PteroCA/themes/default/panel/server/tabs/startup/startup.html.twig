@@ -1,0 +1,183 @@
+{% block main %}
+    {% if serverData.hasConfigurableOptions or serverData.hasConfigurableVariables %}
+        <div class="tab-pane" id="startup">
+            {% if serverData.hasConfigurableOptions %}
+                {% include 'panel/server/tabs/startup/components/options.html.twig' %}
+            {% endif %}
+            {% if serverData.hasConfigurableVariables %}
+                {% include 'panel/server/tabs/startup/components/variables.html.twig' %}
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block body_javascript %}
+    {% if not server.isSuspended and (serverData.hasConfigurableOptions or serverData.hasConfigurableVariables) %}
+    <script>
+        function getSettingElement(settingName, isStartupOption = false) {
+            let preparedSettingName = settingName;
+            if (isStartupOption) {
+                preparedSettingName = preparedSettingName.replace('_', '-');
+            }
+            return document.querySelector(`input[data-option-name="${preparedSettingName}"], select[data-option-name="${preparedSettingName}"]`);
+        }
+
+        function toggleSetting(settingName, isStartupOption = false) {
+            const element = getSettingElement(settingName, isStartupOption),
+                icon = document.querySelector(`i[data-option-name="${settingName}"]`);
+
+            if (icon.classList.contains('fa-spin')) {
+                return;
+            }
+
+            if (!toggleDisabledElement(element)) {
+                element.focus();
+            } else {
+                if (element.classList.contains('is-invalid')) {
+                    toggleDisabledElement(element);
+                    element.focus();
+                    return;
+                }
+                if (!saveSetting(settingName, isStartupOption)) {
+                    toggleDisabledElement(element);
+                    element.focus();
+                    return;
+                }
+            }
+
+            icon.classList.toggle('fa-edit');
+            icon.classList.toggle('fa-save');
+            toggleServerVariablesElement(settingName);
+        }
+
+        function toggleDisabledElement(element) {
+            let disabled;
+
+            if (element.tagName !== 'SELECT') {
+                element.readOnly = !element.readOnly;
+                disabled = element.readOnly;
+            } else {
+                element.disabled = !element.disabled;
+                disabled = element.disabled;
+            }
+
+            return disabled;
+        }
+
+        function toggleServerVariablesElement(settingName) {
+            const serverVariablesElement = document.querySelector(`.server-variables[data-option-name="${settingName}"]`);
+            if (serverVariablesElement) {
+                serverVariablesElement.classList.toggle('d-none');
+            }
+        }
+
+        function validateSetting(settingName, settingValue) {
+            const settingRules = document.querySelectorAll(`.server-variables[data-option-name="${settingName}"] .server-variable`);
+
+            for (const ruleElement of settingRules) {
+                const rule = ruleElement.textContent.trim();
+
+                switch (true) {
+                    case rule === 'required':
+                        if (settingValue.trim() === '') {
+                            return false;
+                        }
+                        break;
+                    case rule.startsWith('min:'):
+                        const min = parseInt(rule.split(':')[1]);
+                        if (settingValue.length < min) {
+                            return false;
+                        }
+                        break;
+                    case rule.startsWith('max:'):
+                        const max = parseInt(rule.split(':')[1]);
+                        if (settingValue.length > max) {
+                            return false;
+                        }
+                        break;
+                    case rule.startsWith('between:'):
+                        const between = rule.split(':')[1].split(',');
+                        const minBetween = parseInt(between[0]);
+                        const maxBetween = parseInt(between[1]);
+                        if (settingValue.length < minBetween || settingValue.length > maxBetween) {
+                            return false;
+                        }
+                        break;
+                    case rule.startsWith('regex:'):
+                        const regexPattern = rule.split(':')[1].replace(/^\/|\/$/g, '');
+                        const regex = new RegExp(regexPattern);
+                        if (!regex.test(settingValue)) {
+                            return false;
+                        }
+                        break;
+                }
+            }
+
+            return true;
+        }
+
+        function saveSetting(settingName, isStartupOption) {
+            const element = getSettingElement(settingName, isStartupOption);
+
+            if (validateSetting(settingName, element.value) === false) {
+                alert('{{ 'pteroca.server.data_validation_error'|trans }}');
+                return false;
+            }
+
+            const icon = document.querySelector(`i[data-option-name="${settingName}"]`);
+            icon.classList.remove('fa-edit');
+            icon.classList.add('fa-spinner', 'fa-spin');
+
+            const endpointUrl = !isStartupOption
+                    ? '{{ path('server_startup_variable_update', { id: server.id }) }}'
+                    : '{{ path('server_startup_option_update', { id: server.id }) }}';
+            fetch(endpointUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    key: settingName,
+                    value: element.value,
+                }),
+            }).then(async response => {
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    return handleError(data.error || '{{ 'pteroca.server.data_update_error'|trans }}');
+                }
+
+                alert('{{ 'pteroca.server.data_updated_successfully'|trans }}');
+            }).catch(error => {
+                return handleError('{{ 'pteroca.server.data_update_error'|trans }}');
+            }).finally(() => {
+                icon.classList.remove('fa-spinner', 'fa-spin');
+                icon.classList.add('fa-edit');
+            });
+
+            return true;
+        }
+
+        function handleError(message) {
+            alert(message);
+            throw new Error(message);
+        }
+    </script>
+    {% include 'components/egg_variable_validator.html.twig' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            attachEggVariableValidation();
+        });
+
+        document.addEventListener('input', function(e) {
+            const input = e.target;
+            if (!input.dataset.optionName || !input.dataset.rules) return;
+            const icon = document.querySelector(`i[data-option-name="${input.dataset.optionName}"]`);
+            if (!icon || !icon.classList.contains('fa-save')) return;
+            const isInvalid = !validateRulesValue(input.value, input.dataset.rules);
+            icon.classList.toggle('opacity-50', isInvalid);
+            icon.style.cursor = isInvalid ? 'not-allowed' : '';
+        });
+    </script>
+    {% endif %}
+{% endblock %}

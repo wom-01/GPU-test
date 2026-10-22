@@ -1,0 +1,804 @@
+/* Jieyun light theme. Loaded last so it stays consistent in every color mode. */
+:root,
+html.ea-light-scheme,
+html.ea-dark-scheme,
+.ea-light-scheme,
+.ea-dark-scheme {
+    --primary-color: #087fc4 !important;
+    --secondary-color: #21b8d7 !important;
+    --color-primary: #087fc4 !important;
+    --body-bg: #eef5f8 !important;
+    --content-bg: #eef5f8 !important;
+    --sidebar-bg: #f8fcfd !important;
+    --sidebar-menu-color: #45697a !important;
+    --sidebar-menu-submenu-color: #45697a !important;
+    --sidebar-menu-icon-color: #5a7b8b !important;
+    --sidebar-menu-active-item-bg: #e2f3f8 !important;
+    --sidebar-menu-active-item-color: #0878b7 !important;
+    --bs-body-bg: #eef5f8 !important;
+    --bs-body-color: #203746 !important;
+    --bs-heading-color: #112f42 !important;
+    --bs-card-bg: #ffffff !important;
+    --bs-card-cap-bg: #f7fbfc !important;
+    --bs-border-color: #d6e5eb !important;
+    --bs-secondary-bg: #eaf3f6 !important;
+    --bs-tertiary-bg: #f4f8fa !important;
+    --bs-table-bg: #ffffff !important;
+    --bs-table-color: #294455 !important;
+    --bs-table-hover-bg: #f3f9fb !important;
+    --link-color: #087fc4 !important;
+    --link-hover-color: #05679f !important;
+    --text-color: #294455 !important;
+    --text-muted-color: #688493 !important;
+    color-scheme: light !important;
+}
+
+html,
+body,
+.wrapper,
+.main-content,
+.content-wrapper,
+.content,
+.content-body,
+.ea-light-scheme body,
+.ea-dark-scheme body,
+.ea-light-scheme .wrapper,
+.ea-light-scheme .main-content,
+.ea-light-scheme .content-wrapper,
+.ea-light-scheme .content,
+.ea-light-scheme .content-body,
+.ea-dark-scheme .wrapper,
+.ea-dark-scheme .main-content,
+.ea-dark-scheme .content-wrapper,
+.ea-dark-scheme .content,
+.ea-dark-scheme .content-body {
+    background-color: #eef5f8 !important;
+    color: #294455 !important;
+}
+
+body,
+.main-content,
+.content-wrapper,
+.ea-light-scheme body,
+.ea-light-scheme .main-content,
+.ea-light-scheme .content-wrapper,
+.ea-dark-scheme body,
+.ea-dark-scheme .main-content,
+.ea-dark-scheme .content-wrapper {
+    background:
+        radial-gradient(circle at 88% 7%, rgba(33, 184, 215, .10), transparent 24rem),
+        linear-gradient(145deg, #f4f9fb 0%, #edf5f8 55%, #eaf3f6 100%) !important;
+    background-attachment: fixed !important;
+}
+
+.sidebar,
+.ea-light-scheme .sidebar,
+.ea-dark-scheme .sidebar {
+    background: linear-gradient(180deg, #fbfeff 0%, #f1f8fa 100%) !important;
+    border-right: 1px solid #d7e7ed !important;
+    box-shadow: 8px 0 30px rgba(31, 78, 99, .06) !important;
+}
+
+.main-header,
+.content-top,
+.responsive-header,
+.global-footer,
+.ea-dark-scheme .main-header,
+.ea-dark-scheme .content-top {
+    background: rgba(255, 255, 255, .94) !important;
+    border-color: #d7e7ed !important;
+    color: #294455 !important;
+    box-shadow: 0 1px 0 rgba(25, 77, 99, .05) !important;
+    backdrop-filter: blur(12px);
+}
+
+.main-header #header-logo,
+.main-header #header-logo a,
+.responsive-header #responsive-header-logo {
+    background: transparent !important;
+}
+
+#main-menu .menu-header,
+#main-menu .menu .menu-header,
+#main-menu .menu .menu-item-label,
+#main-menu .menu .menu-icon,
+.menu-item .icon.submenu-toggle-icon,
+.ea-dark-scheme #main-menu .menu .menu-item-label,
+.ea-dark-scheme #main-menu .menu .menu-icon {
+    color: #587586 !important;
+}
+
+#main-menu .menu .menu-header {
+    color: #78919d !important;
+}
+
+#main-menu .menu .menu-item {
+    border-left-color: transparent !important;
+}
+
+#main-menu .menu .menu-item:hover,
+#main-menu .menu .menu-item.active,
+#main-menu .menu .submenu .menu-item.active a,
+.ea-dark-scheme #main-menu .menu .menu-item:hover,
+.ea-dark-scheme #main-menu .menu .menu-item.active {
+    background: #e2f3f8 !important;
+    border-left-color: #16a9d2 !important;
+}
+
+#main-menu .menu .menu-item:hover .menu-item-label,
+#main-menu .menu .menu-item:hover .menu-icon,
+#main-menu .menu .menu-item.active .menu-item-label,
+#main-menu .menu .menu-item.active .menu-icon,
+#main-menu .menu .menu-item.active:not(.expanded) a,
+.ea-dark-scheme #main-menu .menu .menu-item.active .menu-item-label,
+.ea-dark-scheme #main-menu .menu .menu-item.active .menu-icon {
+    color: #0878b7 !important;
+}
+
+#main-menu .menu .menu-item.active:not(.expanded) .menu-icon,
+#main-menu .menu .menu-item.active:not(.expanded) .menu-icon i,
+.ea-light-scheme #main-menu .menu .menu-item.active:not(.expanded) .menu-icon,
+.ea-dark-scheme #main-menu .menu .menu-item.active:not(.expanded) .menu-icon {
+    color: #0878b7 !important;
+    -webkit-text-fill-color: #0878b7 !important;
+    opacity: 1 !important;
+}
+
+/* EasyAdmin applies the active parent color to every nested label. Keep expanded
+   submenus readable even when the saved EasyAdmin scheme is still dark. */
+#main-menu .menu > .menu-item.expanded,
+#main-menu .menu > .menu-item.active.expanded,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded,
+.ea-dark-scheme #main-menu .menu > .menu-item.active.expanded {
+    background: #e2f3f8 !important;
+    border-left-color: #16a9d2 !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .menu-item-contents,
+#main-menu .menu > .menu-item.expanded > .menu-item-contents .menu-item-label,
+#main-menu .menu > .menu-item.expanded > .menu-item-contents .menu-icon,
+#main-menu .menu > .menu-item.expanded > .menu-item-contents .submenu-toggle-icon,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .menu-item-contents,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .menu-item-contents .menu-item-label,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .menu-item-contents .menu-icon,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .menu-item-contents .submenu-toggle-icon {
+    color: #28576c !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .submenu,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu {
+    background: transparent !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item {
+    background: transparent !important;
+    border-left-color: transparent !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents .menu-item-label,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents .menu-icon,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents .menu-item-label,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item > a.menu-item-contents .menu-icon {
+    color: #45697a !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active {
+    background: #d3ebf3 !important;
+    border-left-color: #16a9d2 !important;
+}
+
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents .menu-item-label,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents .menu-icon,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents .menu-item-label,
+#main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents .menu-icon,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents .menu-item-label,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item:hover > a.menu-item-contents .menu-icon,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents .menu-item-label,
+.ea-dark-scheme #main-menu .menu > .menu-item.expanded > .submenu > .menu-item.active > a.menu-item-contents .menu-icon {
+    color: #05679f !important;
+}
+
+#main-menu .menu .menu-item > .menu-item-contents:focus-visible {
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px rgba(8, 127, 196, .34) !important;
+    outline: none !important;
+}
+
+.navbar-custom-menu,
+.navbar-custom-menu .user-details,
+.navbar-custom-menu .user-name,
+.content-top .navbar-custom-menu a,
+.content-top .navbar-custom-menu i {
+    color: #176d99 !important;
+}
+
+.card,
+.dashboard-header,
+.content-panel,
+.list-group-item,
+.dropdown-menu,
+.modal-content,
+.accordion-item,
+.server-card,
+.datagrid,
+.ea-light-scheme .card,
+.ea-light-scheme .dashboard-header,
+.ea-dark-scheme .card,
+.ea-dark-scheme .dashboard-header {
+    background: rgba(255, 255, 255, .97) !important;
+    border: 1px solid #d7e7ed !important;
+    color: #294455 !important;
+    box-shadow: 0 10px 30px rgba(39, 88, 108, .07) !important;
+}
+
+.dashboard-header,
+.ea-light-scheme .dashboard-header,
+.ea-dark-scheme .dashboard-header {
+    background:
+        linear-gradient(110deg, rgba(255, 255, 255, .99), rgba(239, 249, 252, .98)) !important;
+}
+
+.responsive-header .fa-bars,
+.responsive-header button .fa-bars,
+.ea-light-scheme .responsive-header .fa-bars,
+.ea-dark-scheme .responsive-header .fa-bars {
+    color: #176d99 !important;
+    -webkit-text-fill-color: #176d99 !important;
+    opacity: 1 !important;
+}
+
+.server-card:hover,
+.card:hover {
+    border-color: #c3dce6 !important;
+}
+
+.card-header,
+.ea-light-scheme .card-header,
+.ea-dark-scheme .card-header,
+.table thead th,
+.accordion-button {
+    background: #f5fafc !important;
+    border-color: #d7e7ed !important;
+    color: #19384b !important;
+}
+
+/* Every card header is rendered on a light surface in this theme. Override
+   legacy text-white utilities without changing high-contrast action buttons. */
+.content-wrapper .card > .card-header,
+.content-wrapper .card > .card-header h1,
+.content-wrapper .card > .card-header h2,
+.content-wrapper .card > .card-header h3,
+.content-wrapper .card > .card-header h4,
+.content-wrapper .card > .card-header h5,
+.content-wrapper .card > .card-header h6,
+.content-wrapper .card > .card-header .card-title,
+.content-wrapper .card > .card-header.text-white,
+.content-wrapper .card > .card-header .text-white,
+.ea-dark-scheme .content-wrapper .card > .card-header,
+.ea-dark-scheme .content-wrapper .card > .card-header .text-white {
+    color: #19384b !important;
+    -webkit-text-fill-color: #19384b !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .card > .card-header i,
+.ea-dark-scheme .content-wrapper .card > .card-header i {
+    color: #087fc4 !important;
+    -webkit-text-fill-color: #087fc4 !important;
+    opacity: 1 !important;
+}
+
+.bg-light,
+.ea-dark-scheme .bg-light,
+.server-specs .bg-light,
+.product-summary-box,
+.store-product-placeholder,
+.store-category-placeholder {
+    background: #f1f7f9 !important;
+    border-color: #dce9ee !important;
+    color: #294455 !important;
+}
+
+.table,
+.table tbody tr,
+.table tbody td,
+.table tbody th,
+.ea-dark-scheme .table,
+.ea-dark-scheme .table tbody tr,
+.ea-dark-scheme .table tbody td {
+    background-color: #ffffff !important;
+    border-color: #deeaef !important;
+    color: #294455 !important;
+}
+
+.table tbody tr:hover,
+.list-group-item:hover,
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #eff7fa !important;
+}
+
+.content-wrapper,
+.content-wrapper h1,
+.content-wrapper h2,
+.content-wrapper h3,
+.content-wrapper h4,
+.content-wrapper h5,
+.content-wrapper h6,
+.dashboard-header h4,
+.card-header h5,
+.card-header .card-title,
+.card-body h2,
+.card-body h6,
+.list-group-item h6,
+.table thead th,
+.table tbody td,
+.table tbody td *,
+.list-group-item,
+.list-group-item * {
+    color: #19384b !important;
+}
+
+.content-wrapper .text-muted,
+.card-body .text-muted,
+.dashboard-header .text-muted,
+.list-group-item .text-muted,
+.table tbody small,
+.form-text,
+.help-text,
+.field-help,
+.form-help,
+small.text-muted {
+    color: #688493 !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .form-label,
+.content-wrapper .field-label,
+.content-wrapper .form-check-label,
+.content-wrapper .form-group label,
+.content-wrapper legend,
+.form-label {
+    color: #294455 !important;
+    opacity: 1 !important;
+}
+
+.form-control,
+.form-select,
+.input-group-text,
+.form-check-input,
+.content-wrapper input,
+.content-wrapper textarea,
+.content-wrapper select {
+    background-color: #ffffff !important;
+    border-color: #cbdde5 !important;
+    color: #244253 !important;
+}
+
+.content-wrapper .gpu-credential-input.form-control,
+.ea-light-scheme .content-wrapper .gpu-credential-input.form-control,
+.ea-dark-scheme .content-wrapper .gpu-credential-input.form-control {
+    background-color: #ffffff !important;
+    border-color: #9fbfcd !important;
+    color: #17384b !important;
+    -webkit-text-fill-color: #17384b !important;
+    font-weight: 600;
+    opacity: 1 !important;
+}
+
+/* Product checkout is always a light surface, including when EasyAdmin has a
+   previously saved dark color scheme. */
+.content-wrapper .product-order-card,
+.ea-light-scheme .content-wrapper .product-order-card,
+.ea-dark-scheme .content-wrapper .product-order-card {
+    background: #ffffff !important;
+    color: #19384b !important;
+}
+
+.content-wrapper .product-order-card > .card-header,
+.ea-light-scheme .content-wrapper .product-order-card > .card-header,
+.ea-dark-scheme .content-wrapper .product-order-card > .card-header {
+    background: #eef7fa !important;
+    border-color: #cfe2e9 !important;
+    color: #19384b !important;
+}
+
+.content-wrapper .product-order-card > .card-header h5,
+.content-wrapper .product-order-card > .card-header i,
+.content-wrapper .product-order-card .form-label,
+.content-wrapper .product-order-card .product-summary-box,
+.content-wrapper .product-order-card .product-summary-box span:not(.text-success) {
+    color: #19384b !important;
+    -webkit-text-fill-color: #19384b !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .product-order-card .form-select,
+.content-wrapper .product-order-card .form-control,
+.ea-light-scheme .content-wrapper .product-order-card .form-select,
+.ea-light-scheme .content-wrapper .product-order-card .form-control,
+.ea-dark-scheme .content-wrapper .product-order-card .form-select,
+.ea-dark-scheme .content-wrapper .product-order-card .form-control {
+    background-color: #ffffff !important;
+    border-color: #9fbfcd !important;
+    color: #17384b !important;
+    -webkit-text-fill-color: #17384b !important;
+    caret-color: #17384b !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .product-order-card .form-select option {
+    background: #ffffff !important;
+    color: #17384b !important;
+}
+
+.content-wrapper .product-order-card .form-control::placeholder {
+    color: #4f6f7d !important;
+    -webkit-text-fill-color: #4f6f7d !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .product-order-card .form-text,
+.content-wrapper .product-order-card .text-muted {
+    color: #4f6f7d !important;
+    -webkit-text-fill-color: #4f6f7d !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .product-order-card .input-group .btn-outline-secondary {
+    background: #f7fbfc !important;
+    border-color: #9fbfcd !important;
+    color: #167ca9 !important;
+}
+
+.content-wrapper .product-order-card .server-password-control {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.content-wrapper .product-order-card .server-password-control .form-control {
+    width: 100%;
+    min-width: 0;
+    padding-right: 3.5rem !important;
+    border-radius: 8px !important;
+}
+
+.content-wrapper .product-order-card .server-password-toggle,
+.ea-dark-scheme .content-wrapper .product-order-card .server-password-toggle {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    right: 1px;
+    bottom: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    display: grid;
+    width: 48px;
+    min-width: 48px;
+    padding: 0 !important;
+    place-items: center;
+    border: 0 !important;
+    border-left: 1px solid #cbdde5 !important;
+    border-radius: 0 7px 7px 0 !important;
+    background: #f5fafc !important;
+    box-shadow: none !important;
+    color: #176d99 !important;
+}
+
+.content-wrapper .product-order-card .server-password-toggle i,
+.ea-dark-scheme .content-wrapper .product-order-card .server-password-toggle i {
+    color: #176d99 !important;
+    -webkit-text-fill-color: #176d99 !important;
+    opacity: 1 !important;
+}
+
+.content-wrapper .product-order-card .server-password-toggle:hover,
+.content-wrapper .product-order-card .server-password-toggle:focus-visible {
+    background: #e7f4f8 !important;
+    color: #0878b7 !important;
+}
+
+.content-wrapper .product-order-card .server-password-toggle:focus-visible {
+    outline: 2px solid #25a9cf !important;
+    outline-offset: -3px;
+}
+
+.content-wrapper .product-order-card .server-password-help {
+    margin-top: 8px;
+    line-height: 1.55;
+}
+
+.form-control::placeholder,
+.content-wrapper input::placeholder,
+.content-wrapper textarea::placeholder {
+    color: #91a8b3 !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+.content-wrapper input:focus,
+.content-wrapper textarea:focus,
+.content-wrapper select:focus {
+    background-color: #ffffff !important;
+    border-color: #25a9cf !important;
+    color: #19384b !important;
+    box-shadow: 0 0 0 .2rem rgba(37, 169, 207, .14) !important;
+}
+
+.form-control:disabled,
+.form-select:disabled,
+.content-wrapper input:disabled,
+.content-wrapper textarea:disabled,
+.content-wrapper select:disabled {
+    background-color: #eaf1f4 !important;
+    border-color: #d5e2e7 !important;
+    color: #758d98 !important;
+    -webkit-text-fill-color: #758d98 !important;
+    opacity: 1 !important;
+}
+
+.btn-primary,
+.btn-success,
+.btn.primary,
+.btn.success,
+.btn.btn-primary,
+.btn.btn-success {
+    background: linear-gradient(135deg, #087fc4 0%, #16a7d3 100%) !important;
+    border-color: #087fc4 !important;
+    color: #ffffff !important;
+    box-shadow: 0 7px 18px rgba(8, 127, 196, .18) !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn.primary:hover,
+.btn.success:hover {
+    background: linear-gradient(135deg, #066da9 0%, #0d93bd 100%) !important;
+    border-color: #066da9 !important;
+    color: #ffffff !important;
+}
+
+.btn.secondary,
+.btn-secondary {
+    background: #e7eef2 !important;
+    border-color: #d1e0e6 !important;
+    color: #58717e !important;
+    box-shadow: none !important;
+}
+
+.btn.secondary:hover,
+.btn-secondary:hover {
+    background: #dbe8ed !important;
+    border-color: #c4d8e0 !important;
+    color: #294455 !important;
+}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success {
+    background: #ffffff !important;
+    border-color: #b9d3dd !important;
+    color: #167ca9 !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary.active,
+.btn-outline-secondary:hover,
+.btn-outline-success:hover {
+    background: #e2f3f8 !important;
+    border-color: #25a9cf !important;
+    color: #0878b7 !important;
+}
+
+.badge-success,
+.badge.bg-success,
+.text-bg-success {
+    background: #d9f7e7 !important;
+    border: 1px solid #75dca7 !important;
+    color: #08704d !important;
+}
+
+.badge-warning,
+.badge.bg-warning,
+.text-bg-warning {
+    background: #fff2c9 !important;
+    border: 1px solid #eac456 !important;
+    color: #705000 !important;
+}
+
+.badge-danger,
+.badge.bg-danger,
+.text-bg-danger {
+    background: #ffe0e3 !important;
+    border: 1px solid #ef9ca4 !important;
+    color: #8b2630 !important;
+}
+
+.badge-secondary,
+.badge.bg-secondary,
+.text-bg-secondary,
+.table tbody .badge:not(.badge-success):not(.badge-warning):not(.badge-danger) {
+    background: #e7eef2 !important;
+    border: 1px solid #bdced6 !important;
+    color: #4c6673 !important;
+}
+
+.alert-info {
+    background: #e8f7fb !important;
+    border-color: #a8dce9 !important;
+    color: #24677f !important;
+}
+
+.alert-warning {
+    background: #fff8df !important;
+    border-color: #ebd386 !important;
+    color: #725b16 !important;
+}
+
+.alert-success {
+    background: #e7f8ef !important;
+    border-color: #a6dfbf !important;
+    color: #246843 !important;
+}
+
+.alert-danger {
+    background: #fff0f1 !important;
+    border-color: #efb5ba !important;
+    color: #8a3038 !important;
+}
+
+a:not(.btn):not(.badge):not(.dropdown-item):not(.page-link),
+.text-primary,
+.card-header i {
+    color: #087fc4 !important;
+}
+
+.text-info { color: #168eb5 !important; }
+.text-success { color: #16875d !important; }
+.text-warning { color: #d79200 !important; }
+.text-danger { color: #c44752 !important; }
+.text-secondary { color: #66808d !important; }
+
+.dropdown-item,
+.dropdown-header,
+.modal-title,
+.accordion-button,
+.nav-link,
+.page-link {
+    color: #294455 !important;
+}
+
+.page-link,
+.nav-tabs .nav-link {
+    background: #ffffff !important;
+    border-color: #d4e3e9 !important;
+}
+
+.page-item.active .page-link,
+.nav-tabs .nav-link.active {
+    background: #e2f3f8 !important;
+    border-color: #25a9cf !important;
+    color: #0878b7 !important;
+}
+
+.placeholder {
+    background-color: #b8cbd4 !important;
+    color: #b8cbd4 !important;
+    opacity: .62 !important;
+}
+
+.datagrid-empty tr.no-results td {
+    background: #ffffff !important;
+    border-color: #d7e7ed !important;
+    color: #688493 !important;
+}
+
+/* Payment and identity pages use dedicated components that were originally dark. */
+.payment-settings-header,
+.payment-settings-panel,
+.identity-header,
+.identity-panel {
+    background: #ffffff !important;
+    border-color: #d7e7ed !important;
+    color: #294455 !important;
+    box-shadow: 0 10px 30px rgba(39, 88, 108, .07) !important;
+}
+
+.payment-tabs,
+.payment-settings-actions {
+    background: #f5fafc !important;
+    border-color: #d7e7ed !important;
+}
+
+.payment-tab,
+.payment-settings-header p,
+.identity-header p,
+.identity-result span,
+.identity-consent {
+    color: #688493 !important;
+}
+
+.payment-tab:hover,
+.payment-tab.active,
+.payment-settings-header h3,
+.identity-header h3,
+.identity-result b,
+.identity-form > label:not(.identity-consent),
+.payment-field {
+    color: #19384b !important;
+}
+
+.payment-info,
+.identity-enable-setting,
+.identity-result {
+    background: #eff8fb !important;
+    border-color: #cce3eb !important;
+    color: #376579 !important;
+}
+
+.payment-field input,
+.identity-form input[type='text'],
+.identity-form input:not([type]) {
+    background: #ffffff !important;
+    border-color: #cbdde5 !important;
+    color: #244253 !important;
+}
+
+.payment-field small,
+.identity-enable-setting small {
+    color: #688493 !important;
+}
+
+.identity-enable-setting b {
+    color: #19384b !important;
+}
+
+/* Login and registration pages share the same calmer light palette. */
+.page-login-split,
+.login-split-container,
+.login-split-right,
+.login-form-container {
+    background: #f3f8fa !important;
+    color: #294455 !important;
+}
+
+.login-split-left {
+    background: linear-gradient(145deg, #e4f5fa 0%, #d7eef5 100%) !important;
+    color: #19384b !important;
+}
+
+.login-brand-title,
+.login-feature-item,
+.login-split-left h1,
+.login-split-left h2,
+.login-split-left h3 {
+    color: #19384b !important;
+}
+
+.login-brand-subtitle,
+.login-split-left p {
+    color: #5e7e8d !important;
+}
+
+@media (max-width: 991px) {
+    body,
+    .main-content,
+    .content-wrapper {
+        background-image: linear-gradient(160deg, #f5fafc 0%, #edf5f8 100%) !important;
+    }
+
+    .sidebar {
+        box-shadow: 8px 0 28px rgba(31, 78, 99, .10) !important;
+    }
+}

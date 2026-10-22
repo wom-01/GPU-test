@@ -1,0 +1,29 @@
+{# Featured Products #}
+<div class="market-product-list">
+    {% for product in products %}
+        <article class="market-product-card">
+            <div class="product-main">
+                <div class="product-title"><span class="gpu-mark"><i class="fas fa-microchip"></i></span><div><h3>{{ product.name }}</h3><p>GPU 云服务器 · 弹性按需使用</p></div></div>
+                <div class="product-specs"><div><span>内存</span><strong>{{ product.memory >= 1024 ? (product.memory / 1024)|number_format(0) ~ ' GB' : product.memory ~ ' GB' }}</strong></div><div><span>CPU</span><strong>{{ product.cpu }} 核</strong></div><div><span>系统盘</span><strong>{{ product.diskSpace >= 1024 ? (product.diskSpace / 1024)|number_format(0) ~ ' GB' : product.diskSpace ~ ' GB' }}</strong></div><div><span>网络端口</span><strong>{{ product.ports }} 个</strong></div></div>
+                {% if product.shortDescription %}<p class="product-description">{{ product.shortDescription|striptags }}</p>{% endif %}
+            </div>
+            <div class="product-order"><div class="product-price">
+                    {% set lowestPriceObj = product.lowestPriceObject %}
+                    {% if lowestPriceObj %}
+                        {% if lowestPriceObj.type.value == 'static' %}
+                            <strong>{{ lowestPriceObj.price|format_price }} {{ get_currency() }}</strong><small>/ {{ lowestPriceObj.value }} {{ ('pteroca.product.' ~ lowestPriceObj.unit.value)|trans|lower }}</small>
+                        {% elseif lowestPriceObj.type.value == 'on_demand' %}
+                            <strong>{{ lowestPriceObj.price|format_price }} {{ get_currency() }}</strong><small>/ {{ 'pteroca.product.minute_short'|trans }}</small>
+                        {% elseif lowestPriceObj.type.value == 'slot' %}
+                            <strong>{{ lowestPriceObj.price|format_price }} {{ get_currency() }}</strong><small>/ {{ 'pteroca.product.slot'|trans }}</small>
+                        {% endif %}
+                    {% else %}
+                        <small>{{ 'pteroca.landing.products.contact_us'|trans }}</small>
+                    {% endif %}
+                </div></div>
+            <a href="{{ path('panel', { routeName: 'panel_store_product', id: product.id }) }}" class="btn btn-primary product-rent">立即租用</a>
+        </article>
+    {% else %}
+        <div class="market-empty"><i class="fas fa-server"></i><p>暂时没有可购买的算力配置</p></div>
+    {% endfor %}
+</div>

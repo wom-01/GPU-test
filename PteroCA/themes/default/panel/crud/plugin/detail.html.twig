@@ -1,0 +1,461 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block content_header_wrapper %}
+    <div class="dashboard-header rounded-3 p-4 mb-4 mt-4">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary rounded-circle me-3">
+                        <i class="fas fa-puzzle-piece p-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1 fw-bold">{{ plugin.displayName }}</h4>
+                        <p class="text-muted mb-0">{{ 'pteroca.crud.plugin.plugin_details'|trans }}</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {# Back to list button #}
+                    <a href="{{ ea_url({ crudAction: 'index', crudControllerFqcn: 'App\\Core\\Controller\\Panel\\Setting\\PluginCrudController' }) }}"
+                       class="btn secondary">
+                        <i class="fa fa-arrow-left"></i> {{ 'pteroca.crud.plugin.back_to_list'|trans }}
+                    </a>
+
+                    {# Dynamic actions from controller #}
+                    {% if plugin_actions is defined %}
+                        {% for action in plugin_actions %}
+                            <a href="{{ action.url }}"
+                               class="btn {{ action.class }}"
+                               {% if action.data_attrs is defined %}
+                                   {% for attr, value in action.data_attrs %}
+                                       data-{{ attr }}="{{ value }}"
+                                   {% endfor %}
+                               {% endif %}>
+                                <i class="{{ action.icon }}"></i> {{ action.label }}
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block main %}
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <div class="row align-items-stretch">
+                <div class="col-md-6 d-flex flex-column">
+                    <h5 class="mb-3">{{ 'pteroca.crud.plugin.basic_information'|trans }}</h5>
+                    <table class="table table-borderless flex-grow-1">
+                        <tbody>
+                        <tr>
+                            <th style="width: 40%;">{{ 'pteroca.crud.plugin.name_label'|trans }}</th>
+                            <td><code>{{ plugin.name }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.display_name_label'|trans }}</th>
+                            <td>{{ plugin.displayName }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.version_label'|trans }}</th>
+                            <td><span class="badge bg-info">{{ plugin.version }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.author_label'|trans }}</th>
+                            <td>{{ plugin.author }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.description_label'|trans }}</th>
+                            <td>{{ plugin.description|default('pteroca.crud.plugin.no_description_provided'|trans) }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.state_label'|trans }}</th>
+                            <td>
+                                <span class="badge bg-{{ plugin.state.badgeClass }}">
+                                    {{ plugin.state.label|trans }}
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-md-6 d-flex flex-column">
+                    <h5 class="mb-3">{{ 'pteroca.crud.plugin.technical_details'|trans }}</h5>
+                    <table class="table table-borderless flex-grow-1">
+                        <tbody>
+                        <tr>
+                            <th style="width: 40%;">{{ 'pteroca.crud.plugin.capabilities_label'|trans }}</th>
+                            <td>
+                                {% if plugin.capabilities|length > 0 %}
+                                    <div class="d-flex flex-wrap gap-2">
+                                        {% for capability in plugin.capabilities %}
+                                            <span class="badge bg-secondary">{{ capability }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <em>{{ 'pteroca.crud.plugin.none'|trans }}</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.min_pteroca_version_label'|trans }}</th>
+                            <td>
+                                {% if plugin.pterocaMinVersion %}
+                                    <span class="badge bg-info">{{ plugin.pterocaMinVersion }}</span>
+                                {% else %}
+                                    <em>{{ 'pteroca.crud.plugin.not_specified'|trans }}</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.max_pteroca_version_label'|trans }}</th>
+                            <td>
+                                {% if plugin.pterocaMaxVersion %}
+                                    <span class="badge bg-info">{{ plugin.pterocaMaxVersion }}</span>
+                                {% else %}
+                                    <em>{{ 'pteroca.crud.plugin.not_specified'|trans }}</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if plugin.enabledAt %}
+                            <tr>
+                                <th>{{ 'pteroca.crud.plugin.enabled_at_label'|trans }}</th>
+                                <td>{{ plugin.enabledAt|app_date }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if plugin.disabledAt %}
+                            <tr>
+                                <th>{{ 'pteroca.crud.plugin.disabled_at_label'|trans }}</th>
+                                <td>{{ plugin.disabledAt|app_date }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if plugin.faultReason %}
+                            <tr>
+                                <th>{{ 'pteroca.crud.plugin.fault_reason_label'|trans }}</th>
+                                <td class="text-danger">{{ plugin.faultReason }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if plugin.createdAt %}
+                            <tr>
+                                <th>{{ 'pteroca.crud.plugin.created_at_label'|trans }}</th>
+                                <td>{{ plugin.createdAt|app_date }}</td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if plugin.state.value == 'faulted' and plugin.faultReason %}
+                <div class="alert alert-danger mt-4" role="alert">
+                    <h5 class="alert-heading">
+                        <i class="fa fa-exclamation-triangle"></i> {{ 'pteroca.crud.plugin.plugin_error'|trans }}
+                    </h5>
+                    <p class="mb-0">{{ plugin.faultReason }}</p>
+                </div>
+            {% endif %}
+
+            {% if plugin.state.value == 'update_pending' %}
+                <div class="alert alert-warning mt-4" role="alert">
+                    <h5 class="alert-heading">
+                        <i class="fa fa-info-circle"></i> {{ 'pteroca.crud.plugin.update_available'|trans }}
+                    </h5>
+                    <p class="mb-0">{{ 'pteroca.crud.plugin.update_available_message'|trans }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Dependencies Section #}
+    {% if dependencies|length > 0 %}
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fa fa-link"></i> {{ 'pteroca.crud.plugin.dependencies'|trans }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if hasCircularDependency %}
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i>
+                        <strong>{{ 'pteroca.crud.plugin.circular_dependency_detected'|trans }}</strong><br>
+                        {{ circularDependencyPath|join(' → ') }}
+                    </div>
+                {% endif %}
+
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.required_plugin'|trans }}</th>
+                            <th>{{ 'pteroca.crud.plugin.version_constraint'|trans }}</th>
+                            <th>{{ 'pteroca.crud.plugin.installed_version'|trans }}</th>
+                            <th>{{ 'pteroca.crud.plugin.status'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dep in dependencies %}
+                            <tr>
+                                <td>
+                                    <code>{{ dep.name }}</code>
+                                    {% if dep.plugin %}
+                                        <br><small class="text-muted">{{ dep.plugin.displayName }}</small>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-secondary">{{ dep.constraint }}</span></td>
+                                <td>
+                                    {% if dep.installed %}
+                                        <span class="badge bg-info">{{ dep.version }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ 'pteroca.crud.plugin.not_installed'|trans }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not dep.installed %}
+                                        <span class="badge bg-danger">
+                                            <i class="fa fa-times"></i> {{ 'pteroca.crud.plugin.missing'|trans }}
+                                        </span>
+                                    {% elseif not dep.enabled %}
+                                        <span class="badge bg-warning">
+                                            <i class="fa fa-pause"></i> {{ 'pteroca.crud.plugin.not_enabled'|trans }}
+                                        </span>
+                                    {% elseif not dep.compatible %}
+                                        <span class="badge bg-danger">
+                                            <i class="fa fa-exclamation-triangle"></i> {{ 'pteroca.crud.plugin.incompatible_version'|trans }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fa fa-check"></i> {{ 'pteroca.crud.plugin.satisfied'|trans }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Health Status Section #}
+    {% if healthCheckResult is not null %}
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fa fa-heartbeat {{ healthCheckResult.healthy ? 'text-success' : 'text-danger' }}"></i>
+                    {{ 'pteroca.plugin.health.health_status'|trans }}
+                    <span class="badge {{ healthCheckResult.healthy ? 'bg-success' : 'bg-danger' }} ms-2">
+                        {{ healthCheckResult.healthPercentage|number_format(0) }}%
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'pteroca.plugin.health.check'|trans }}</th>
+                            <th>{{ 'pteroca.plugin.health.status'|trans }}</th>
+                            <th>{{ 'pteroca.plugin.health.error_details'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for checkName, passed in healthCheckResult.checks %}
+                            <tr>
+                                <td>
+                                    {% if checkName == 'files_integrity' %}
+                                        {{ 'pteroca.plugin.health.files_integrity'|trans }}
+                                    {% elseif checkName == 'dependencies' %}
+                                        {{ 'pteroca.plugin.health.dependencies'|trans }}
+                                    {% elseif checkName == 'configuration' %}
+                                        {{ 'pteroca.plugin.health.configuration'|trans }}
+                                    {% elseif checkName == 'service_registration' %}
+                                        {{ 'pteroca.plugin.health.service_registration'|trans }}
+                                    {% else %}
+                                        {{ checkName }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if passed %}
+                                        <span class="badge bg-success">
+                                            <i class="fa fa-check me-1"></i> {{ 'pteroca.plugin.health.passed'|trans }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fa fa-times me-1"></i> {{ 'pteroca.plugin.health.failed'|trans }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not passed and healthCheckResult.errors[checkName] is defined %}
+                                        <small class="text-danger">{{ healthCheckResult.errors[checkName] }}</small>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Security Status Section #}
+    {% if securityCheckResult is not null %}
+        <div class="card border-0 shadow-sm rounded-3 mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fa fa-shield-alt {{ securityCheckResult.secure ? 'text-success' : 'text-danger' }}"></i>
+                    {{ 'pteroca.plugin.security.security_status'|trans }}
+                    <span class="badge {{ securityCheckResult.secure ? 'bg-success' : 'bg-danger' }} ms-2">
+                        {{ securityCheckResult.securityPercentage|number_format(0) }}%
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ 'pteroca.plugin.health.check'|trans }}</th>
+                            <th>{{ 'pteroca.plugin.health.status'|trans }}</th>
+                            <th>{{ 'pteroca.plugin.security.issues'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for checkName, passed in securityCheckResult.checks %}
+                            <tr>
+                                <td>
+                                    {{ ('pteroca.plugin.security.check.' ~ checkName)|trans }}
+                                </td>
+                                <td>
+                                    {% if passed %}
+                                        <span class="badge bg-success">
+                                            <i class="fa fa-check me-1"></i> {{ 'pteroca.plugin.health.passed'|trans }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fa fa-times me-1"></i> {{ 'pteroca.plugin.health.failed'|trans }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set issueCount = securityCheckResult.getIssueCountByType(checkName) %}
+                                    {% if issueCount > 0 %}
+                                        <span class="badge bg-danger">{{ issueCount }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {# Show detailed issues if any exist #}
+                {% if not securityCheckResult.secure %}
+                    <div class="mt-4">
+                        <h6>{{ 'pteroca.plugin.security.total_issues_found'|trans }}: {{ securityCheckResult.totalIssues }}</h6>
+                        <table class="table table-hover mt-3">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'pteroca.plugin.security.severity'|trans }}</th>
+                                    <th>{{ 'pteroca.plugin.security.type'|trans }}</th>
+                                    <th>{{ 'pteroca.plugin.security.file'|trans }}</th>
+                                    <th>{{ 'pteroca.plugin.security.line'|trans }}</th>
+                                    <th>{{ 'pteroca.plugin.security.message'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in securityCheckResult.issues %}
+                                    <tr>
+                                        <td>
+                                            {% if issue.severity == 'critical' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fa fa-exclamation-circle"></i> {{ 'pteroca.plugin.security.critical'|trans|upper }}
+                                                </span>
+                                            {% elseif issue.severity == 'high' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fa fa-exclamation-triangle"></i> {{ 'pteroca.plugin.security.high'|trans|upper }}
+                                                </span>
+                                            {% elseif issue.severity == 'medium' %}
+                                                <span class="badge bg-info">{{ 'pteroca.plugin.security.medium'|trans|upper }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ 'pteroca.plugin.security.low'|trans|upper }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><code>{{ issue.type }}</code></td>
+                                        <td>
+                                            {% if issue.file is defined %}
+                                                <small>{{ issue.file }}</small>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if issue.line is defined %}
+                                                {{ issue.line }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ issue.message }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {# Dependents Section #}
+    {% if dependents|length > 0 %}
+        <div class="card border-0 shadow-sm rounded-3 border-warning mt-4">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h5 class="mb-0">
+                    <i class="fa fa-exclamation-triangle text-warning"></i> {{ 'pteroca.crud.plugin.dependent_plugins'|trans }}
+                </h5>
+                <small class="text-muted">
+                    {{ 'pteroca.crud.plugin.dependents_warning'|trans }}
+                </small>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ 'pteroca.crud.plugin.plugin_name'|trans }}</th>
+                            <th>{{ 'pteroca.crud.plugin.version_constraint'|trans }}</th>
+                            <th>{{ 'pteroca.crud.plugin.current_state'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dependent in dependents %}
+                            <tr>
+                                <td>
+                                    <strong>{{ dependent.displayName }}</strong><br>
+                                    <small class="text-muted"><code>{{ dependent.name }}</code></small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ dependent.requires[plugin.name] ?? '*' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ dependent.state.badgeClass }}">
+                                        {{ dependent.state.label|trans }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Delete Plugin Confirmation Modal #}
+    {% if plugin.id is not null and app.user.hasPermission(constant('App\\Core\\Enum\\PermissionEnum::UNINSTALL_PLUGIN')) %}
+        {% include 'panel/crud/plugin/components/delete-modal.html.twig' %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,17 @@
+{
+  "template": {
+    "name": "default",
+    "description": "Default template for the project PteroCA.com",
+    "author": "PteroCA.com",
+    "version": "1.2.0",
+    "license": "MIT",
+    "pterocaVersion": "0.6.5",
+    "phpVersion": ">=8.2",
+    "contexts": ["panel", "landing", "email"],
+    "translations": [],
+    "options": {
+      "supportDarkMode": true,
+      "supportCustomColors": true
+    }
+  }
+}

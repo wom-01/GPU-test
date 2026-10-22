@@ -1,0 +1,88 @@
+/* ============================================================
+   登录页品牌统一覆盖（仅作用于 .page-login-split，不影响客户中心其他页面）
+   将登录页主色从水鸭蓝(#087fc4)统一为首页电光蓝(#185dff)体系
+   ============================================================ */
+
+.page-login-split {
+    --primary-color: #185dff;
+    --color-primary: #185dff;
+    --bs-primary: #185dff;
+    --bs-primary-rgb: 24, 93, 255;
+    --bs-link-color: #185dff;
+    --bs-link-hover-color: #0c42d5;
+}
+
+/* 左侧品牌区：首页 hero 同款浅蓝渐变 */
+.page-login-split .login-split-left {
+    background: linear-gradient(145deg, #eaf3ff 0%, #d9edff 100%) !important;
+    color: #17233b !important;
+}
+.page-login-split .login-split-left h3,
+.page-login-split .login-brand-title {
+    color: #142c65 !important;
+}
+.page-login-split .login-brand-subtitle,
+.page-login-split .login-split-left p {
+    color: #43506a !important;
+}
+.page-login-split .login-feature-item i {
+    color: #185dff !important;
+}
+
+/* 右侧表单区：首页画布色 */
+.page-login-split .login-form-container {
+    background: #f4f7fc !important;
+    color: #17233b !important;
+}
+.page-login-split .login-form-wrapper h1,
+.page-login-split .login-form-wrapper h4 {
+    color: #142c65 !important;
+}
+
+/* 主按钮：首页同款渐变与悬停 */
+.page-login-split .btn-primary {
+    border: 0 !important;
+    background: linear-gradient(105deg, #185dff, #427eff) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(24, 93, 255, .2) !important;
+}
+.page-login-split .btn-primary:hover,
+.page-login-split .btn-primary:focus {
+    background: linear-gradient(105deg, #0c42d5, #185dff) !important;
+    color: #fff !important;
+}
+
+/* 链接（忘记密码等） */
+.page-login-split .login-form-wrapper a:not(.btn) {
+    color: #185dff !important;
+}
+.page-login-split .login-form-wrapper a:not(.btn):hover {
+    color: #0c42d5 !important;
+}
+
+/* 输入框聚焦态 */
+.page-login-split .form-control:focus {
+    border-color: #427eff !important;
+    box-shadow: 0 0 0 .25rem rgba(24, 93, 255, .15) !important;
+}
+
+/* 记住我复选框 */
+.page-login-split .form-check-input:checked {
+    background-color: #185dff !important;
+    border-color: #185dff !important;
+}
+
+/* ============================================================
+   去掉表单白框底：container/wrapper 两层背景全部透明，
+   表单直接浮于右侧纯白背景上，无任何卡片边界
+   ============================================================ */
+.page-login-split .login-form-container {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+.page-login-split .login-form-wrapper {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}

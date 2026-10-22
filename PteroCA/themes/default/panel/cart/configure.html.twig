@@ -1,0 +1,863 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ 'pteroca.cart_configuration.title'|trans }} - {{ product.name }}{% endblock %}
+
+{% block content %}
+    <div class="mt-4">
+        <!-- Header Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-header rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle me-3">
+                                <i class="fas fa-shopping-cart p-3 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold">{{ 'pteroca.cart_configuration.title'|trans }}</h4>
+                                <p class="text-muted mb-0">{{ 'pteroca.cart_configuration.description'|trans }}</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn primary p-3" data-bs-toggle="modal" data-bs-target="#useVoucherModal">
+                                <i class="fa fa-plus me-2"></i>{{ 'pteroca.cart.use_voucher'|trans }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if widgetRegistry is defined %}
+            {% include '_partials/widget_area.html.twig' with {
+                'position': constant('App\\Core\\Enum\\WidgetPosition::TOP'),
+                'widgetContext': widgetContext,
+                'widgetRegistry': widgetRegistry,
+                'contextData': contextData
+            } %}
+        {% endif %}
+
+        {{ form_start(form, {
+            'action': path('cart_buy', { 'id': product.id }),
+            'method': 'POST',
+            'attr': {'id': 'configure-form'}
+        }) }}
+            {{ form_widget(form.id) }}
+            {{ form_widget(form.voucher, {'attr': {'id': 'voucher-code', 'data-voucher-type': 'server_discount'}}) }}
+            <input type="hidden" name="purchase_token" value="{{ purchase_token }}" />
+            
+            <div class="row g-4">
+                <!-- Product Configuration -->
+                <div class="col-lg-8">
+                    <!-- Product Information Card -->
+                    <div class="card border-0 shadow-sm rounded-3 mb-4">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-server me-2"></i>
+                                <h5 class="mb-0 fw-semibold">{{ product.name }}</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-memory p-3 text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.ram'|trans }}:</strong>
+                                                    <span class="ms-2">{{ ((product.memory * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-microchip p-3 text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.cpu'|trans }}:</strong>
+                                                    <span class="ms-2">{{ product.cpu }}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-hdd p-3 text-success"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.disk'|trans }}:</strong>
+                                                    <span class="ms-2">{{ ((product.diskSpace * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-secondary bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-exchange-alt p-3 text-secondary"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.swap'|trans }}:</strong>
+                                                    <span class="ms-2">{{ ((product.swap * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="list-group list-group-flush">
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-network-wired p-3 text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.ports'|trans }}:</strong>
+                                                    <span class="ms-2">{{ product.ports }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-danger bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-save p-3 text-danger"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.backups'|trans }}:</strong>
+                                                    <span class="ms-2">{{ product.backups }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-group-item border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-circle me-3">
+                                                    <i class="fas fa-database p-3 text-warning"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ 'pteroca.product.databases'|trans }}:</strong>
+                                                    <span class="ms-2">{{ product.dbCount }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Card -->
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-cogs me-2"></i>
+                                <h5 class="mb-0 fw-semibold">{{ 'pteroca.cart_configuration.configuration'|trans }}</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label for="duration" class="form-label fw-semibold">
+                                        <i class="fas fa-clock me-2 text-primary"></i>
+                                        {{ 'pteroca.cart_configuration.period'|trans }}
+                                    </label>
+                                    {{ form_widget(form.duration, {'id': 'duration'}) }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="egg" class="form-label fw-semibold">
+                                        <i class="fas fa-cog me-2 text-warning"></i>
+                                        {{ 'pteroca.product.egg'|trans }}
+                                    </label>
+                                    {{ form_widget(form.egg, {'id': 'egg'}) }}
+                                    {% if product.allowChangeEgg %}
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle text-info me-1"></i>
+                                            {{ 'pteroca.product.egg_hint'|trans }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if hasSlotPrices %}
+                                <div class="col-md-12">
+                                    {% include 'components/slot_selector.html.twig' with {
+                                        'initialValue': 1,
+                                        'maxValue': 32,
+                                        'minValue': 1,
+                                        'showBadge': true
+                                    } %}
+                                </div>
+                                {% endif %}
+
+                                {% if allowLocationSelection and groupedLocations is not empty %}
+                                <div class="col-md-6">
+                                    <label for="location" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>
+                                        {{ 'pteroca.cart_configuration.location'|trans }}
+                                    </label>
+                                    {{ form_widget(form.node, {'attr': {'id': 'location', 'class': 'form-select form-select-lg'}}) }}
+                                    <div id="location-availability-message" class="form-text mt-2"></div>
+                                </div>
+                                {% endif %}
+
+                                <div class="col-md-6">
+                                    <label for="server-name" class="form-label fw-semibold">
+                                        <i class="fas fa-tag me-2 text-success"></i>
+                                        {{ 'pteroca.cart_configuration.server_name'|trans }}
+                                    </label>
+                                    {{ form_widget(form['server-name'], {'attr': {'placeholder': product.name, 'id': 'server-name'}}) }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="operating-system" class="form-label fw-semibold">
+                                        <i class="fas fa-desktop me-2 text-info"></i>
+                                        操作系统
+                                    </label>
+                                    {{ form_widget(form['operating-system'], {'attr': {'id': 'operating-system'}}) }}
+                                    {{ form_errors(form['operating-system']) }}
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="ssh-password" class="form-label fw-semibold">
+                                        <i class="fas fa-key me-2 text-warning"></i>
+                                        登录密码
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form_widget(form['ssh-password'], {'attr': {'id': 'ssh-password'}}) }}
+                                        <button type="button" class="btn btn-outline-secondary" onclick="toggleServerPassword(this)" aria-label="显示或隐藏密码">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    {{ form_errors(form['ssh-password']) }}
+                                    <div class="form-text">用于服务器 SSH 或远程桌面登录。</div>
+                                </div>
+
+                                {% if allowAutoRenewal %}
+                                <div class="col-md-6">
+                                    <label for="auto-renewal" class="form-label fw-semibold">
+                                        <i class="fas fa-sync-alt me-2 text-info"></i>
+                                        {{ 'pteroca.cart_configuration.auto_renewal'|trans }}
+                                    </label>
+                                    {{ form_widget(form['auto-renewal'], {'attr': {'id': 'auto-renewal'}}) }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if userRequiredVariablesByEgg is not empty %}
+                    <!-- User Required Variables Card (shown dynamically) -->
+                    <div id="user-required-variables-card" class="card border-0 shadow-sm rounded-3 mt-4 d-none">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-key me-2 text-warning"></i>
+                                <h5 class="mb-0 fw-semibold">{{ 'pteroca.cart_configuration.user_required_variables_title'|trans }}</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ 'pteroca.cart_configuration.user_required_variables_description'|trans }}
+                            </p>
+                            <div id="user-required-variables-container"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-3 sticky-top" style="top: 20px;">
+                        <div class="card-header bg-success text-white">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-receipt me-2"></i>
+                                <h5 class="mb-0 fw-semibold">{{ 'pteroca.cart_configuration.order_summary'|trans }}</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Product Name -->
+                            <div class="mb-3">
+                                <h6 class="fw-bold">{{ product.name }}</h6>
+                                <div id="selected-dates" class="small"></div>
+                            </div>
+                            
+                            <hr class="my-3">
+                            
+                            <!-- Period and Price -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small>{{ 'pteroca.cart_configuration.period'|trans }}:</small>
+                                        <div id="selected-duration" class="fw-semibold"></div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span id="selected-price" class="fw-semibold"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Setup Fee -->
+                            {% if product.setupFee is not null and product.setupFee > 0 %}
+                            <div class="mb-3" id="setup-fee-section">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small>{{ 'pteroca.cart_configuration.setup_fee'|trans }}:</small>
+                                        <div class="small text-muted">{{ 'pteroca.cart_configuration.setup_fee_one_time'|trans }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-semibold">{{ product.setupFee|format_price }} {{ get_currency() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Discount Section -->
+                            <div class="mb-3 d-none" id="applied-discount">
+                                <hr class="my-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-success">{{ 'pteroca.product.discount'|trans }}</small>
+                                        <div class="small text-muted">
+                                            <span id="applied-discount-code"></span> (-<span id="applied-discount-value"></span>%)
+                                            <i class="fa fa-question-circle-o ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ 'pteroca.product.discount_hint'|trans }}"></i>
+                                            <i class="fa fa-close ms-1 hover-pointer text-danger" id="applied-discount-remove"></i>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-success">-<span id="applied-discount-amount"></span> {{ get_currency() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <!-- Total -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">{{ 'pteroca.product.total'|trans }}:</span>
+                                    <span id="selected-summary" class="fw-bold text-primary fs-4"></span>
+                                </div>
+                            </div>
+
+                            <!-- Alerts -->
+                            {% if not isProductAvailable %}
+                                <div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    {{ 'pteroca.product.not_available'|trans }}
+                                </div>
+                            {% endif %}
+
+                            <div class="alert alert-warning border-0 shadow-sm mb-3 d-none" data-alert="not_enough_balance" role="alert">
+                                <i class="fa fa-exclamation-triangle me-2"></i>
+                                {{ 'pteroca.product.not_enough_balance'|trans }}
+                            </div>
+
+                            <!-- Order Button -->
+                            <div class="d-grid">
+                                <button type="submit" id="order-submit" class="btn success btn-lg rounded-3 fw-semibold p-3" disabled>
+                                    <i class="fa fa-shopping-basket me-2"></i>
+                                    {{ 'pteroca.product.order_now'|trans }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if widgetRegistry is defined %}
+                <div class="col-12">
+                    {% include '_partials/widget_area.html.twig' with {
+                        'position': constant('App\\Core\\Enum\\WidgetPosition::BOTTOM'),
+                        'widgetContext': widgetContext,
+                        'widgetRegistry': widgetRegistry,
+                        'contextData': contextData
+                    } %}
+                </div>
+            {% endif %}
+        {{ form_end(form) }}
+    </div>
+
+    {% include 'components/use_voucher_modal.html.twig' %}
+    {% include 'panel/cart/components/apply_discount.html.twig' %}
+{% endblock %}
+
+{% block body_javascript %}
+    {% include 'components/egg_variable_validator.html.twig' %}
+
+    <script>
+        function toggleServerPassword(button) {
+            const input = button.closest('.input-group').querySelector('input');
+            const icon = button.querySelector('i');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    </script>
+    {% set priceSeps = get_price_separators() %}
+    <script>
+        const unitTranslations = {
+            minutes: '{{ 'pteroca.product.minutes'|trans }}',
+            hours: '{{ 'pteroca.product.hours'|trans }}',
+            days: '{{ 'pteroca.product.days'|trans }}',
+            months: '{{ 'pteroca.product.months'|trans }}',
+            years: '{{ 'pteroca.product.years'|trans }}',
+        },
+            currentUserBalance = parseFloat('{{ app.user.balance }}'),
+            isProductAvailable = {{ isProductAvailable ? 'true' : 'false' }};
+
+        function formatPrice(price) {
+            const decSep = '{{ priceSeps.decimal|e('js') }}';
+            const thSep = '{{ priceSeps.thousands|e('js') }}';
+            const parts = price.toFixed(2).split('.');
+            let intPart = parts[0];
+            const decPart = parts[1] || '00';
+            if (thSep !== '') {
+                intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, thSep);
+            }
+            return intPart + decSep + decPart;
+        }
+
+        {% if hasSlotPrices %}
+        const eggsConfiguration = {{ product.eggsConfiguration|raw }};
+        {% endif %}
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const durationSelect = document.getElementById('duration');
+            {% if hasSlotPrices %}
+            const slotSelection = document.getElementById('slot-selection');
+            const slotsRange = document.getElementById('slots');
+            const selectedSlotsDisplay = document.getElementById('selected-slots');
+            const eggSelect = document.getElementById('egg');
+            const slotsFormField = document.getElementById('server_order_slots');
+            
+            {% if initialSlots %}
+            const initialSlots = {{ initialSlots }};
+            {% if selectedDuration is not defined or not selectedDuration %}
+            // Only auto-select slot pricing if no specific duration was selected
+            if (initialSlots && slotsRange) {
+                const slotOptions = Array.from(durationSelect.options).filter(option =>
+                    option.getAttribute('data-type') === 'slot'
+                );
+                if (slotOptions.length > 0) {
+                    durationSelect.value = slotOptions[0].value;
+                    slotSelection.style.display = 'block';
+
+                    updateMaxSlots();
+
+                    const maxSlots = parseInt(slotsRange.max);
+                    const finalSlots = Math.min(initialSlots, maxSlots);
+                    slotsRange.value = finalSlots;
+                    handleSlotsChange();
+                }
+            }
+            {% else %}
+            // Respect user's selected duration even with slot pricing
+            if (initialSlots && slotsRange) {
+                const selectedOption = durationSelect.options[durationSelect.selectedIndex];
+                if (selectedOption && selectedOption.getAttribute('data-type') === 'slot') {
+                    slotSelection.style.display = 'block';
+                    updateMaxSlots();
+
+                    const maxSlots = parseInt(slotsRange.max);
+                    const finalSlots = Math.min(initialSlots, maxSlots);
+                    slotsRange.value = finalSlots;
+                    handleSlotsChange();
+                }
+            }
+            {% endif %}
+            {% endif %}
+            {% endif %}
+
+            durationSelect.addEventListener('change', () => {
+                removeDiscountCode();
+                {% if hasSlotPrices %}
+                handleDurationChange();
+                {% endif %}
+                calculatePrice();
+            });
+            durationSelect.dispatchEvent(new Event('change'));
+
+            {% if hasSlotPrices %}
+            slotsRange.addEventListener('input', function() {
+                handleSlotsChange();
+                calculatePrice();
+            });
+
+            eggSelect.addEventListener('change', function() {
+                if (slotSelection.style.display !== 'none') {
+                    updateMaxSlots();
+                    // Trigger price recalculation after slot maximum changes
+                    calculatePrice();
+                }
+            });
+
+            function updateMaxSlots() {
+                const selectedEggId = parseInt(eggSelect.value);
+                let maxSlots = 32;
+                
+                if (eggsConfiguration && eggsConfiguration[selectedEggId]) {
+                    const eggConfig = eggsConfiguration[selectedEggId];
+                    if (eggConfig.variables && typeof eggConfig.variables === 'object') {
+                        for (const variableId in eggConfig.variables) {
+                            const variable = eggConfig.variables[variableId];
+                            if (variable.slot_variable === 'on' && variable.value) {
+                                maxSlots = parseInt(variable.value);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Get current value before updating max
+                const currentSlotValue = parseInt(slotsRange.value);
+                
+                // Update max slots for the range input
+                slotsRange.max = maxSlots;
+                slotsRange.nextElementSibling.textContent = maxSlots;
+                
+                // If current value exceeds new maximum, adjust it to the new maximum
+                if (currentSlotValue > maxSlots) {
+                    slotsRange.value = maxSlots;
+                    handleSlotsChange(); // Update the display text
+                }
+            }
+
+            function handleDurationChange() {
+                const selectedOption = durationSelect.options[durationSelect.selectedIndex];
+                const priceType = selectedOption.getAttribute('data-type');
+                
+                if (priceType === 'slot') {
+                    slotSelection.style.display = 'block';
+                    updateMaxSlots();
+                } else {
+                    slotSelection.style.display = 'none';
+                }
+            }
+
+            function handleSlotsChange() {
+                const slotsCount = slotsRange.value;
+                const slotText = slotsCount === '1' ? '{{ 'pteroca.product.slot'|trans }}' : '{{ 'pteroca.product.slots'|trans }}';
+                selectedSlotsDisplay.textContent = `${slotsCount} ${slotText}`;
+                if (slotsFormField) {
+                    slotsFormField.value = slotsCount;
+                }
+            }
+
+            handleDurationChange();
+            handleSlotsChange();
+            {% endif %}
+
+            document.getElementById('applied-discount-remove').addEventListener('click', removeDiscountCode);
+
+            // Prevent double-submit: disable button on form submission
+            const submitButton = document.getElementById('order-submit');
+            const form = document.getElementById('configure-form');
+
+            form.addEventListener('submit', function(e) {
+                if (!e.defaultPrevented && !submitButton.disabled) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>{{ "pteroca.product.processing"|trans|default("Processing...") }}';
+                }
+            });
+        })
+
+        function calculatePrice() {
+            const durationSelect = document.getElementById('duration'),
+                selectedOption = durationSelect.options[durationSelect.selectedIndex],
+                appliedDiscountValue = document.querySelector('#applied-discount-value');
+            
+            let productPrice = parseFloat(selectedOption.dataset.price);
+            
+            {% if hasSlotPrices %}
+            // Apply slot pricing calculation
+            if (selectedOption.dataset.type === 'slot') {
+                const slotsRange = document.getElementById('slots');
+                if (slotsRange) {
+                    const slotQuantity = parseInt(slotsRange.value) || 1;
+                    productPrice = productPrice * slotQuantity;
+                }
+            }
+            {% endif %}
+
+            const setupFee = {{ product.setupFee ?? 0 }};
+            let summaryPrice = productPrice
+
+            if (appliedDiscountValue && appliedDiscountValue.innerText) {
+                const discountValue = parseFloat(appliedDiscountValue.innerText);
+                if (!isNaN(discountValue)) {
+                    let discountPrice = summaryPrice * (discountValue / 100);
+                    document.querySelector('#applied-discount-amount').textContent = formatPrice(discountPrice);
+                    summaryPrice -= discountPrice
+                }
+            }
+
+            const basePrice = parseFloat(selectedOption.dataset.price);
+            let durationText = '';
+            
+            if (selectedOption.dataset.type === 'slot') {
+                {% if hasSlotPrices %}
+                const slotsRange = document.getElementById('slots');
+                const slotQuantity = parseInt(slotsRange.value) || 1;
+                const periodText = `${selectedOption.dataset.value} ${unitTranslations[selectedOption.dataset.unit]}`;
+                durationText = `${periodText} [${slotQuantity} ${slotQuantity === 1 ? '{{ 'pteroca.product.slot'|trans }}' : '{{ 'pteroca.product.slots'|trans }}'}]`;
+                {% endif %}
+            } else {
+                durationText = `${selectedOption.dataset.value} ${unitTranslations[selectedOption.dataset.unit]}`;
+            }
+
+            document.querySelector('#selected-duration').textContent = durationText;
+            document.querySelector('#selected-price').textContent = `${formatPrice(productPrice)} {{ get_currency() }}`;
+
+            // Calculate and display dates for static pricing
+            const datesElement = document.querySelector('#selected-dates');
+            if (selectedOption.dataset.type === 'static') {
+                const startDate = new Date();
+                const endDate = new Date();
+                const value = parseInt(selectedOption.dataset.value);
+                const unit = selectedOption.dataset.unit;
+
+                switch (unit) {
+                    case 'days':
+                        endDate.setDate(startDate.getDate() + value);
+                        break;
+                    case 'hours':
+                        endDate.setHours(startDate.getHours() + value);
+                        break;
+                    case 'minutes':
+                        endDate.setMinutes(startDate.getMinutes() + value);
+                        break;
+                    case 'months':
+                        endDate.setMonth(startDate.getMonth() + value);
+                        break;
+                    case 'years':
+                        endDate.setFullYear(startDate.getFullYear() + value);
+                        break;
+                }
+
+                const formatDate = (date) => {
+                    return date.toLocaleDateString('pl-PL', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                };
+
+                datesElement.textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+                datesElement.style.display = 'block';
+            } else {
+                datesElement.style.display = 'none';
+            }
+
+            summaryPrice = summaryPrice + setupFee;
+
+            document.querySelector('#selected-summary').textContent = `${formatPrice(summaryPrice)} {{ get_currency() }}`
+
+            const insufficientBalance = currentUserBalance < summaryPrice;
+            document.querySelector('div[data-alert="not_enough_balance"]').classList.toggle('d-none', !insufficientBalance);
+            document.querySelector('button#order-submit').disabled = insufficientBalance || !isProductAvailable;
+        }
+
+        {% if userRequiredVariablesByEgg is not empty %}
+        // --- User Required Variables ---
+        const userRequiredVariablesByEgg = {{ userRequiredVariablesByEgg|json_encode|raw }};
+
+        function loadUserRequiredVariables(eggId) {
+            if (!eggId) {
+                hideUserRequiredCard();
+                return;
+            }
+
+            const variables = userRequiredVariablesByEgg[eggId] || [];
+            const card = document.getElementById('user-required-variables-card');
+            const container = document.getElementById('user-required-variables-container');
+
+            if (variables.length === 0) {
+                hideUserRequiredCard();
+                return;
+            }
+
+            container.innerHTML = '';
+
+            variables.forEach(variable => {
+                const group = document.createElement('div');
+                group.className = 'mb-4';
+
+                const label = document.createElement('label');
+                label.className = 'form-label fw-semibold';
+                label.textContent = variable.name || variable.env_variable;
+
+                const inputName = `user_variables[${escapeHtml(variable.env_variable)}]`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = inputName;
+                input.className = 'form-control';
+                input.required = true;
+                if (variable.rules) {
+                    input.dataset.rules = variable.rules;
+                }
+                if (variable.default_value) {
+                    input.value = variable.default_value;
+                    input.placeholder = variable.default_value;
+                }
+
+                group.appendChild(label);
+                group.appendChild(input);
+
+                if (variable.description) {
+                    const hint = document.createElement('div');
+                    hint.className = 'form-text text-muted';
+                    hint.textContent = variable.description;
+                    group.appendChild(hint);
+                }
+
+                if (variable.rules) {
+                    const parsedRules = variable.rules.split('|').filter(r => r.length > 0);
+                    if (parsedRules.length > 0) {
+                        const rulesDiv = document.createElement('div');
+                        rulesDiv.className = 'd-flex flex-wrap gap-1 align-items-center mt-1';
+                        const escapedRules = parsedRules.map(r => {
+                            const s = escapeHtml(r);
+                            return `<span data-rule="${s}" class="px-1 rounded-1 font-monospace text-secondary border border-secondary-subtle" style="font-size:0.7rem;background:rgba(108,117,125,0.08)">${s}</span>`;
+                        }).join('');
+                        rulesDiv.innerHTML = escapedRules;
+                        group.appendChild(rulesDiv);
+                    }
+                }
+
+                container.appendChild(group);
+            });
+
+            card.classList.remove('d-none');
+            attachEggVariableValidation(container);
+        }
+
+        function hideUserRequiredCard() {
+            const card = document.getElementById('user-required-variables-card');
+            const container = document.getElementById('user-required-variables-container');
+            if (card) card.classList.add('d-none');
+            if (container) container.innerHTML = '';
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const eggSelect = document.getElementById('egg');
+            if (eggSelect) {
+                eggSelect.addEventListener('change', function() {
+                    loadUserRequiredVariables(this.value);
+                });
+                if (eggSelect.value) {
+                    loadUserRequiredVariables(eggSelect.value);
+                }
+            }
+        });
+
+        // Extend form submit to validate user_required inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('configure-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const userVarInputs = document.querySelectorAll('#user-required-variables-container input[data-rules]');
+                    for (const input of userVarInputs) {
+                        if (!validateRulesValue(input.value, input.dataset.rules)) {
+                            e.preventDefault();
+                            const label = input.closest('div')?.querySelector('label')?.textContent || input.name;
+                            const msg = '{{ 'pteroca.store.user_required_variable_invalid'|trans }}';
+                            alert(msg.replace('%name%', label));
+                            input.focus();
+                            input.classList.add('is-invalid');
+                            return false;
+                        }
+                        input.classList.remove('is-invalid');
+                    }
+                    // Check empty required inputs without explicit rules
+                    const allUserVarInputs = document.querySelectorAll('#user-required-variables-container input[required]');
+                    for (const input of allUserVarInputs) {
+                        if (!input.value.trim()) {
+                            e.preventDefault();
+                            input.focus();
+                            input.classList.add('is-invalid');
+                            return false;
+                        }
+                        input.classList.remove('is-invalid');
+                    }
+                }, true);
+            }
+        });
+        // --- End User Required Variables ---
+        {% endif %}
+
+        {% if allowLocationSelection and groupedLocations is not empty %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationSelect = document.getElementById('location');
+            const messageDiv = document.getElementById('location-availability-message');
+            const currentProductId = {{ product.id }};
+
+            if (locationSelect) {
+                locationSelect.addEventListener('change', function() {
+                    const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+                    const nodeId = selectedOption.value;
+                    const nodeProductId = parseInt(selectedOption.getAttribute('data-product-id'));
+
+                    if (!nodeId) {
+                        messageDiv.innerHTML = '';
+                        return;
+                    }
+
+                    if (nodeProductId !== currentProductId) {
+                        const durationSelect = document.getElementById('duration');
+                        const eggSelect = document.getElementById('egg');
+
+                        const urlParams = new URLSearchParams();
+                        urlParams.append('routeName', 'cart_configure');
+                        urlParams.append('id', nodeProductId);
+                        urlParams.append('node', nodeId);
+                        if (durationSelect && durationSelect.value) {
+                            const priceId = durationSelect.value;
+                            urlParams.append('duration', priceId);
+                        }
+                        if (eggSelect && eggSelect.value) {
+                            urlParams.append('egg', eggSelect.value);
+                        }
+
+                        window.location.href = '{{ path('panel') }}?' + urlParams.toString();
+                        return;
+                    }
+
+                    messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>{{ 'pteroca.store.checking_availability'|trans }}';
+                    messageDiv.className = 'form-text mt-2 text-muted';
+
+                    fetch('{{ path('api_check_node_resources') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            productId: currentProductId,
+                            nodeId: nodeId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.available) {
+                            messageDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i>{{ 'pteroca.store.location_available'|trans }}';
+                            messageDiv.className = 'form-text mt-2 text-success';
+                        } else {
+                            messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>' + data.message;
+                            messageDiv.className = 'form-text mt-2 text-warning';
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.innerHTML = '<i class="fas fa-times-circle me-1"></i>{{ 'pteroca.store.location_check_failed'|trans }}';
+                        messageDiv.className = 'form-text mt-2 text-danger';
+                    });
+                });
+            }
+        });
+        {% endif %}
+    </script>
+{% endblock %}

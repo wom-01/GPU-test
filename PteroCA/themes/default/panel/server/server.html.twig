@@ -1,0 +1,184 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    {% if tabAssets is defined %}
+        {% for css in tabAssets.stylesheets %}
+            <link rel="stylesheet" href="{{ template_asset(css) }}">
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+{% block title %}
+    | {{ serverData.pterodactylServer.name ?? server.serverProduct.name ?? 'pteroca.server.title'|trans }} #{{ server.pterodactylServerIdentifier }}
+{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block page_actions %}{% endblock %}
+
+{% block content_header_wrapper %}{% endblock %}
+
+{% block main %}
+    <div class="mt-4">
+        {% if connectionError is defined and connectionError %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-header rounded-3 p-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle me-3">
+                                <i class="fas fa-server p-3 text-white"></i>
+                            </div>
+                            <h4 class="mb-1 fw-bold">{{ server.serverProduct.name }} #{{ server.pterodactylServerIdentifier }}</h4>
+                            <div class="ms-auto">
+                                <a href="{{ path('servers') }}" class="btn btn-outline-secondary px-3">
+                                    <i class="fas fa-arrow-left me-1"></i>{{ 'pteroca.server.back_to_servers'|trans }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ 'pteroca.server.connection_error'|trans }}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+        <!-- Header Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-header rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle me-3">
+                            <i class="fas fa-server p-3 text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 fw-bold">{{ serverData.pterodactylServer.name ?? 'pteroca.server.title'|trans }} #{{ server.pterodactylServerIdentifier }}</h4>
+                            {% if serverData.pterodactylServer.description is defined and serverData.pterodactylServer.description %}
+                                <p class="text-muted mb-0">{{ serverData.pterodactylServer.description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="ms-auto d-flex gap-2 align-items-center">
+                            <a href="{{ path('servers') }}" class="btn btn-outline-secondary px-3">
+                                <i class="fas fa-arrow-left me-1"></i>{{ 'pteroca.server.back_to_servers'|trans }}
+                            </a>
+                            {% if is_manage_in_pterodactyl_button_enabled() %}
+                                <a href="{{ get_pterodactyl_panel_url('/server/' ~ server.pterodactylServerIdentifier) }}"
+                                   class="btn btn-primary px-3" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>{{ 'pteroca.server.manage_in_pterodactyl'|trans }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if widgetRegistry is defined %}
+        {% include '_partials/widget_area.html.twig' with {
+            'position': constant('App\\Core\\Enum\\WidgetPosition::TOP'),
+            'widgetContext': widgetContext,
+            'widgetRegistry': widgetRegistry,
+            'contextData': contextData
+        } %}
+    {% endif %}
+
+    {% if isAdminView and app.user.email != server.user.email %}
+        <div class="container">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ 'pteroca.server.admin_view_warning'|trans }}
+            </div>
+        </div>
+    {% endif %}
+    {% if server.isSuspended %}
+        <div class="container">
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                {% if server.expiresAt|date("Y-m-d H:i:s") < "now"|date("Y-m-d H:i:s") %}
+                    {{ 'pteroca.server.suspended_expired_hint'|trans({ '{{ expireDate }}': server.expiresAt|app_date }) }}
+                {% else %}
+                    {{ 'pteroca.server.suspended_hint'|trans }}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if serverData.isInstalling %}
+        {% include 'panel/server/server_installing.html.twig' %}
+    {% elseif serverData.isSuspended %}
+        {% include 'panel/server/server_suspended.html.twig' %}
+    {% else %}
+        <div class="p-2">
+            {% include 'panel/server/tabs/navigation.html.twig' %}
+            <div class="tab-content">
+                {% for tab in visibleTabs %}
+                    {% include tab.template %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if widgetRegistry is defined %}
+        {% include '_partials/widget_area.html.twig' with {
+            'position': constant('App\\Core\\Enum\\WidgetPosition::BOTTOM'),
+            'widgetContext': widgetContext,
+            'widgetRegistry': widgetRegistry,
+            'contextData': contextData
+        } %}
+    {% endif %}
+    {% endif %}{# end connectionError check #}
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+        function sendRequest(endpointUrl, method = 'GET', data = null) {
+            let requestObject = {
+                method: method,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }
+
+            if (data) {
+                requestObject.headers['Content-Type'] = 'application/json'
+                requestObject.body = JSON.stringify(data)
+            }
+
+            return fetch(endpointUrl, requestObject)
+        }
+
+        /**
+         * Show detailed error message from API response
+         * @param {Response} response - Fetch API response object
+         * @param {string} defaultMessage - Default error message to show
+         * @returns {Promise<void>}
+         */
+        function showApiError(response, defaultMessage) {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    let errorMessage = defaultMessage
+                    if (data.detail) {
+                        errorMessage += '\n\n' + data.detail
+                    } else if (data.error) {
+                        errorMessage += '\n\n' + data.error
+                    }
+                    alert(errorMessage)
+                }).catch(() => {
+                    alert(defaultMessage)
+                })
+            }
+        }
+    </script>
+    {% if tabAssets is defined %}
+        {% for js in tabAssets.javascripts %}
+            <script src="{{ template_asset(js) }}"></script>
+        {% endfor %}
+    {% endif %}
+{% endblock %}

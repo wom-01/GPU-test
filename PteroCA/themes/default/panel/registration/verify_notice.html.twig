@@ -1,0 +1,133 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ 'pteroca.verification.title'|trans }}{% endblock %}
+
+{% block content %}
+    <div class="mt-4">
+        {# Header Section #}
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-header rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning rounded-circle me-3">
+                                <i class="fas fa-envelope-open-text p-3 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold">{{ 'pteroca.verification.title'|trans }}</h4>
+                                <p class="text-muted mb-0">{{ 'pteroca.verification.subtitle'|trans }}</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-outline-secondary" href="{{ path('panel') }}">
+                                <i class="fas fa-arrow-left me-2"></i>{{ 'pteroca.verification.back_to_panel'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Flash Messages #}
+        {% include '@EasyAdmin/flash_messages.html.twig' %}
+
+        {# Main Content Card #}
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="row">
+                            {# Left side - Information #}
+                            <div class="col-12 col-lg-7 mb-4 mb-lg-0">
+                                {# Verification Warning Alert #}
+                                <div class="alert alert-warning d-flex align-items-start mb-4" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-3 mt-1 fs-5"></i>
+                                    <div>
+                                        <strong class="d-block mb-1">{{ 'pteroca.verification.required'|trans }}</strong>
+                                        <small>{{ 'pteroca.verification.description'|trans }}</small>
+                                    </div>
+                                </div>
+
+                                {# User Email Information #}
+                                {% if app.user %}
+                                    <div class="mb-4">
+                                        <h6 class="text-muted small text-uppercase mb-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            {{ 'pteroca.verification.sent_to'|trans }}
+                                        </h6>
+                                        <div class="p-3 bg-light rounded border">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle p-3 me-3">
+                                                    <i class="fas fa-envelope"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="fw-semibold text-dark mb-0">{{ app.user.email }}</p>
+                                                    <small class="text-muted">{{ 'pteroca.verification.check_inbox'|trans|default('Check your inbox for the verification link') }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                {# Help Text #}
+                                <div class="alert alert-info border-0 mb-0" role="alert">
+                                    <div class="d-flex">
+                                        <i class="fas fa-lightbulb me-3 mt-1"></i>
+                                        <div>
+                                            <strong class="d-block mb-1">{{ 'pteroca.verification.help_title'|trans|default('Need help?') }}</strong>
+                                            <small>{{ 'pteroca.verification.help_text'|trans }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Right side - Action #}
+                            <div class="col-12 col-lg-5">
+                                <div class="d-flex flex-column h-100 justify-content-center">
+                                    <div class="text-center mb-4">
+                                        <div class="verification-icon-container rounded-circle mx-auto mb-3">
+                                            <i class="fas fa-paper-plane verification-icon"></i>
+                                        </div>
+                                        <h5 class="fw-bold mb-2">{{ 'pteroca.verification.resend_title'|trans|default('Resend Verification') }}</h5>
+                                        <p class="text-muted small mb-4">{{ 'pteroca.verification.resend_description'|trans|default('Didn\'t receive the email? We can send it again.') }}</p>
+                                    </div>
+
+                                    {# Action Button #}
+                                    <button type="button" class="btn primary btn-lg w-100" onclick="resendVerification()">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        {{ 'pteroca.verification.resend'|trans }}
+                                    </button>
+
+                                    <p class="text-muted small text-center mt-3 mb-0">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ 'pteroca.verification.may_take_minutes'|trans|default('It may take a few minutes to arrive') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+        function resendVerification() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ path('resend_verification') }}';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = '{{ csrf_token('resend_verification') }}';
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+{% endblock %}

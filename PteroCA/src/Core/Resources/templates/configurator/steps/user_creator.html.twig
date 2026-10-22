@@ -1,0 +1,44 @@
+<div class="col-6 offset-3 configuration-step d-none" data-step="5">
+    <div class="configuration-subtitle">
+        {{ 'pteroca.first_configuration.create_admin_account'|trans }}
+    </div>
+    <p class="text-muted text-center mb-3">
+        {{ 'pteroca.first_configuration.admin_account_description'|trans }}
+    </p>
+    <div class="alert alert-info text-center mb-4">
+        {{ 'pteroca.first_configuration.admin_account_alert'|trans }}
+    </div>
+    <form data-step="5">
+        <div class="form-group">
+            <label class="form-control-label required" for="admin_email">{{ 'pteroca.first_configuration.admin_email'|trans }}</label>
+            <div class="form-widget">
+                <input type="email" id="admin_email" name="admin_email" class="form-control" value="" required autofocus autocomplete="admin_email">
+                <div class="form-text">
+                    {{ 'pteroca.first_configuration.admin_email_help'|trans }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-control-label required" for="admin_password">{{ 'pteroca.first_configuration.admin_password'|trans }}</label>
+            <div class="form-widget">
+                <input type="password" id="admin_password" name="admin_password" class="form-control" value="" required autofocus autocomplete="admin_password">
+                <div class="form-text">
+                    {{ 'pteroca.first_configuration.admin_password_help'|trans }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 text-center text-secondary mb-4 text-error d-none" data-step="5">
+            <i class="fas fa-spinner fa-spin me-2 step-icon-loading" data-step="5"></i>
+            <i class="fas fa-check-circle me-2 step-icon-success d-none" data-step="5" style="color: #28a745;"></i>
+            <i class="fas fa-times-circle me-2 step-icon-error d-none" data-step="5" style="color: #dc3545;"></i>
+            <span class="step-message" data-step="5">{{ 'pteroca.first_configuration.messages.user_checking_account_creation'|trans }}</span>
+        </div>
+
+        <div class="form-group">
+            <button type="button" class="btn btn-lg btn-block configuration-previous-step float-start me-2">{{ 'pteroca.first_configuration.back'|trans }}</button>
+            <button type="submit" class="btn primary btn-lg btn-block float-end me-2">{{ 'pteroca.first_configuration.next'|trans }}</button>
+        </div>
+    </form>
+</div>

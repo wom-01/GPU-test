@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Core\Enum;
+
+enum LogActionEnum
+{
+   case LOGIN;
+   case LOGOUT;
+   case CREATE_PAYMENT;
+   case BOUGHT_BALANCE;
+   case BOUGHT_SERVER;
+   case RENEW_SERVER;
+   case ADMIN_CREATE_SERVER;
+   case ADMIN_CREATE_FREE_SERVER;
+   case ENTITY_ADD;
+   case ENTITY_EDIT;
+   case ENTITY_DELETE;
+   case ENTITY_RESTORE;
+   case USER_REGISTERED;
+   case USER_VERIFY_EMAIL;
+   case USER_API_KEY_REGENERATED;
+   case VOUCHER_REDEEMED;
+   case PLUGIN_ENABLED;
+   case PLUGIN_DISABLED;
+   case PLUGIN_RESET;
+   case PLUGIN_DISCOVERED;
+   case PLUGIN_REGISTERED;
+   case PLUGIN_UPLOADED;
+   case PLUGIN_UPDATED;
+   case PLUGIN_FAULTED;
+   case PLUGIN_MIGRATION_EXECUTED;
+   case PLUGIN_ASSET_PUBLISHED;
+   case PLUGIN_SETTING_CHANGED;
+   case PLUGIN_DELETED;
+   case THEME_UPLOADED;
+   case THEME_COPIED;
+   case THEME_EXPORTED;
+   case THEME_DELETED;
+}

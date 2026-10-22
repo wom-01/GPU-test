@@ -1,0 +1,549 @@
+{% extends 'base.html.twig' %}
+
+{% block body_class 'page-configurator' %}
+{% block title %}{{ get_title() }} | {{ 'pteroca.first_configuration.title'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ template_asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ template_asset('css/panel.css?v=' ~ get_app_version()) }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendor/font-awesome/css/all.min.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="configurator-container">
+        <!-- Logo Header -->
+        <div class="configurator-header">
+            <div class="configurator-logo">
+                <img src="{{ get_logo() }}" alt="{{ get_title() }}">
+            </div>
+            <h1 class="configurator-title">{{ 'pteroca.first_configuration.title'|trans }}</h1>
+            <p class="configurator-subtitle">{{ 'pteroca.first_configuration.description'|trans }}</p>
+        </div>
+
+        <!-- Progress Stepper -->
+        <div class="configurator-stepper">
+            <div class="stepper-line"></div>
+            <div class="stepper-steps">
+                <div class="stepper-step active" data-step="0">
+                    <div class="stepper-circle">
+                        <i class="fas fa-flag-checkered"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_welcome'|trans|default('Welcome') }}</div>
+                </div>
+                <div class="stepper-step" data-step="1">
+                    <div class="stepper-circle">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_site'|trans|default('Site') }}</div>
+                </div>
+                <div class="stepper-step" data-step="2">
+                    <div class="stepper-circle">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_pterodactyl'|trans|default('Pterodactyl') }}</div>
+                </div>
+                <div class="stepper-step" data-step="3">
+                    <div class="stepper-circle">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_email'|trans|default('Email') }}</div>
+                </div>
+                <div class="stepper-step" data-step="4">
+                    <div class="stepper-circle">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_payment'|trans|default('Payment') }}</div>
+                </div>
+                <div class="stepper-step" data-step="5">
+                    <div class="stepper-circle">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="stepper-label">{{ 'pteroca.first_configuration.step_admin'|trans|default('Admin') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Card -->
+        <div class="configuration-card">
+            <div class="configuration-card-body">
+                <div class="row">
+                    {% include '@core_templates/configurator/steps/configurator_welcome.html.twig' %}
+                    {% include '@core_templates/configurator/steps/site_settings.html.twig' %}
+                    {% include '@core_templates/configurator/steps/pterodactyl_settings.html.twig' %}
+                    {% include '@core_templates/configurator/steps/email_settings.html.twig' %}
+                    {% include '@core_templates/configurator/steps/payment_settings.html.twig' %}
+                    {% include '@core_templates/configurator/steps/user_creator.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Links -->
+        <div class="configurator-footer">
+            <div class="configurator-footer-links">
+                <a href="https://docs.pteroca.com" target="_blank">
+                    <i class="fas fa-book"></i>
+                    {{ 'pteroca.first_configuration.documentation_hint'|trans|default('Documentation') }}
+                </a>
+                <a href="https://discord.com/invite/Gz5phhuZym" target="_blank">
+                    <i class="fab fa-discord"></i>
+                    {{ 'pteroca.first_configuration.discord_hint'|trans|default('Join Discord') }}
+                </a>
+            </div>
+            <div class="powered-by-configurator">
+                界云算力平台 &copy; {{ 'now'|date('Y') }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentStep = 0,
+            useExistingPterodactylSettings = false
+
+        const stepCount = 5,
+            forms = document.querySelectorAll('form[data-step]'),
+            skipButtons = document.querySelectorAll('.configuration-skip-step'),
+            backButtons = document.querySelectorAll('.configuration-previous-step'),
+            languageSelect = document.getElementById('configurator_language')
+
+        languageSelect.addEventListener('change', function() {
+            const url = new URL(window.location.href)
+            url.searchParams.set('language', this.value)
+
+            window.location.href = url.toString()
+        })
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault()
+
+                const submitButton = form.querySelector('button[type="submit"]')
+                showButtonLoader(submitButton)
+
+                resetStepError(currentStep)
+                validateStep(currentStep)
+                    .then(response => {
+                        if (response.ok) {
+                            if (currentStep === stepCount) {
+                                return sendConfiguration(submitButton)
+                            }
+
+                            response.json().then(response => {
+                                handleStepSuccess(currentStep, response.message)
+                                setTimeout(() => {
+                                    hideButtonLoader(submitButton)
+                                    setCurrentStep(currentStep + 1)
+                                }, 1000)
+                            })
+                        } else {
+                            return response.json().then(response => {
+                                hideButtonLoader(submitButton)
+                                if ([2, 3, 5].includes(currentStep)) {
+                                    handleStepError(currentStep, response.message)
+                                } else {
+                                    alert(response.message)
+                                }
+                            }).catch(() => {
+                                hideButtonLoader(submitButton)
+                                if ([2, 3, 5].includes(currentStep)) {
+                                    handleStepError(currentStep, '{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                                } else {
+                                    alert('{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                                }
+                            })
+                        }
+                    })
+                    .catch(error => {
+                        hideButtonLoader(submitButton)
+                        if ([2, 3, 5].includes(currentStep)) {
+                            handleStepError(currentStep, '{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                        } else {
+                            alert('{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                        }
+                    })
+            })
+        })
+
+        document.addEventListener('click', function(e) {
+            const overrideButton = e.target.closest('.btn-override-settings')
+            if (overrideButton) {
+                const step = overrideButton.getAttribute('data-step')
+                showPterodactylForm(parseInt(step))
+                return
+            }
+
+            const nextConfiguredButton = e.target.closest('.btn-next-configured')
+            if (nextConfiguredButton) {
+                e.preventDefault()
+                const form = document.querySelector('form[data-step="2"]')
+                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+                return
+            }
+        })
+
+        skipButtons.forEach(skipButton => {
+            skipButton.addEventListener('click', function() {
+                setCurrentStep(currentStep + 1)
+            })
+        })
+
+        backButtons.forEach(backButton => {
+            backButton.addEventListener('click', function() {
+                setCurrentStep(currentStep - 1)
+            })
+        })
+
+        function setCurrentStep(step) {
+            // Remove loaders from all buttons when changing steps
+            const allButtons = document.querySelectorAll('.configuration-card button[type="submit"]')
+            allButtons.forEach(button => hideButtonLoader(button))
+
+            // Only hide current step if we're moving to a different step
+            if (currentStep !== step) {
+                // Hide current step content (use class selector to target only content divs, not stepper)
+                const currentStepContent = document.querySelector('.configuration-card-body .row > div.configuration-step[data-step="' + currentStep + '"]')
+                if (currentStepContent) {
+                    currentStepContent.classList.add('d-none')
+                }
+            }
+
+            // Show new step content
+            const newStepContent = document.querySelector('.configuration-card-body .row > div.configuration-step[data-step="' + step + '"]')
+            if (newStepContent) {
+                newStepContent.classList.remove('d-none')
+                newStepContent.style.display = 'block'
+            }
+
+            currentStep = step
+
+            // Update current step indicator if it exists
+            const currentStepElement = document.getElementById('current-step')
+            if (currentStepElement) {
+                currentStepElement.innerText = currentStep
+            }
+
+            // Update stepper visualization
+            updateStepperProgress(step)
+
+            if (step === 2) {
+                checkIfPterodactylConfigured()
+            }
+        }
+
+        function updateStepperProgress(currentStep) {
+            const steps = document.querySelectorAll('.stepper-step')
+            const progressLine = document.querySelector('.stepper-line::before') ||
+                                document.querySelector('.stepper-line')
+
+            // Update step states
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed')
+
+                if (index < currentStep) {
+                    step.classList.add('completed')
+                } else if (index === currentStep) {
+                    step.classList.add('active')
+                }
+            })
+
+            // Animate progress line
+            const progressPercentage = (currentStep / (steps.length - 1)) * 100
+            if (progressLine) {
+                // Create dynamic style for the progress line animation
+                const styleId = 'stepper-progress-style'
+                let styleElement = document.getElementById(styleId)
+
+                if (!styleElement) {
+                    styleElement = document.createElement('style')
+                    styleElement.id = styleId
+                    document.head.appendChild(styleElement)
+                }
+
+                styleElement.textContent = `
+                    .stepper-line::before {
+                        width: ${progressPercentage}% !important;
+                    }
+                `
+            }
+        }
+
+        function checkIfPterodactylConfigured() {
+            const validateEndpointUrl = '{{ path('first_configuration_validate_step') }}'
+            const formData = new FormData()
+            formData.append('step', 2)
+            formData.append('checkExistingSettings', 'true')
+            formData.append('language', languageSelect.value)
+
+            fetch(validateEndpointUrl, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    showPterodactylAlreadyConfigured()
+                } else {
+                    showPterodactylForm(2)
+                }
+            }).catch(() => {
+                showPterodactylForm(2)
+            })
+        }
+
+        function showPterodactylAlreadyConfigured() {
+            const alreadyConfiguredDiv = document.querySelector('.pterodactyl-already-configured[data-step="2"]')
+            const formFields = document.querySelectorAll('.pterodactyl-form-fields')
+            const overrideButton = document.querySelector('.btn-override-settings[data-step="2"]')
+            
+            if (alreadyConfiguredDiv) {
+                alreadyConfiguredDiv.classList.remove('d-none')
+            }
+            formFields.forEach(field => {
+                field.classList.add('d-none')
+            })
+            if (overrideButton) {
+                overrideButton.classList.remove('d-none')
+            }
+            useExistingPterodactylSettings = true
+        }
+
+
+        function showPterodactylForm(step) {
+            const alreadyConfiguredDiv = document.querySelector('.pterodactyl-already-configured[data-step="' + step + '"]')
+            const formFields = document.querySelectorAll('.pterodactyl-form-fields')
+            const overrideButton = document.querySelector('.btn-override-settings[data-step="' + step + '"]')
+            const textError = document.querySelector('.text-error[data-step="' + step + '"]')
+            
+            if (alreadyConfiguredDiv) {
+                alreadyConfiguredDiv.classList.add('d-none')
+            }
+            formFields.forEach(field => {
+                field.classList.remove('d-none')
+            })
+            if (overrideButton) {
+                overrideButton.classList.add('d-none')
+            }
+            if (textError) {
+                textError.classList.add('d-none')
+            }
+            enableNextButton(step)
+            useExistingPterodactylSettings = false
+        }
+
+        function enableNextButton(step) {
+            const form = document.querySelector('form[data-step="' + step + '"]')
+            if (form) {
+                const submitButton = form.querySelector('button[type="submit"]')
+                if (submitButton) {
+                    submitButton.disabled = false
+                }
+            }
+        }
+
+        function disableNextButton(step) {
+            const form = document.querySelector('form[data-step="' + step + '"]')
+            if (form) {
+                const submitButton = form.querySelector('button[type="submit"]')
+                if (submitButton) {
+                    submitButton.disabled = true
+                }
+            }
+        }
+
+        function validateStep(step) {
+            const validateEndpointUrl = '{{ path('first_configuration_validate_step') }}',
+                form = document.querySelector('form[data-step="' + step + '"]'),
+                formData = new FormData(form)
+
+            switch (step) {
+                case 2:
+                    if (useExistingPterodactylSettings) {
+                        formData.delete('pterodactyl_panel_url')
+                        formData.delete('pterodactyl_panel_api_key')
+                        formData.append('checkExistingSettings', 'true')
+                    }
+                    break
+                case 5:
+                    if (useExistingPterodactylSettings) {
+                        formData.append('useExistingPterodactylSettings', 'true')
+                    } else {
+                        const pterodactylForm = document.querySelector('form[data-step="2"]')
+                        if (pterodactylForm) {
+                            const pterodactylUrlInput = pterodactylForm.querySelector('input[name="pterodactyl_panel_url"]')
+                            const pterodactylApiKeyInput = pterodactylForm.querySelector('input[name="pterodactyl_panel_api_key"]')
+                            
+                            if (pterodactylUrlInput && pterodactylUrlInput.value) {
+                                formData.append('pterodactyl_panel_url', pterodactylUrlInput.value)
+                            }
+                            if (pterodactylApiKeyInput && pterodactylApiKeyInput.value) {
+                                formData.append('pterodactyl_panel_api_key', pterodactylApiKeyInput.value)
+                            }
+                        }
+                    }
+                    break
+            }
+
+            formData.append('step', step)
+            formData.append('language', languageSelect.value)
+
+            return fetch(validateEndpointUrl, {
+                method: 'POST',
+                body: formData
+            })
+        }
+
+        function sendConfiguration(submitButton) {
+            const sendConfigurationEndpointUrl = '{{ path('first_configuration_finish') }}',
+                successUrl = '{{ path('app_login') }}',
+                allForms = document.querySelectorAll('form'),
+                formData = new FormData()
+
+            allForms.forEach(form => {
+                const formElements = form.querySelectorAll('input, select')
+
+                formElements.forEach(element => {
+                    formData.append(element.name, element.value)
+                })
+            })
+
+            if (useExistingPterodactylSettings) {
+                formData.append('useExistingPterodactylSettings', 'true')
+                formData.delete('pterodactyl_panel_url')
+                formData.delete('pterodactyl_panel_api_key')
+            }
+
+            fetch(sendConfigurationEndpointUrl, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = successUrl
+                } else {
+                    hideButtonLoader(submitButton)
+                    return response.json().then(data => {
+                        handleStepError(5, data.message || '{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                    }).catch(() => {
+                        handleStepError(5, '{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                    })
+                }
+            }).catch(() => {
+                handleStepError(5, '{{ 'pteroca.first_configuration.messages.validation_error'|trans }}')
+                hideButtonLoader(submitButton)
+            })
+        }
+
+        function resetStepError(step) {
+            const textError = document.querySelector(`.text-error[data-step="${step}"]`)
+            const messageElement = document.querySelector(`.step-message[data-step="${step}"]`)
+            const loadingIcon = document.querySelector(`.step-icon-loading[data-step="${step}"]`)
+            const successIcon = document.querySelector(`.step-icon-success[data-step="${step}"]`)
+            const errorIcon = document.querySelector(`.step-icon-error[data-step="${step}"]`)
+
+            if (!textError) {
+                return
+            }
+
+            // Reset message text
+            switch (step) {
+                case 2:
+                    if (messageElement) {
+                        messageElement.innerText = '{{ 'pteroca.first_configuration.messages.pterodactyl_checking_api_connection'|trans }}'
+                    }
+                    break;
+                case 3:
+                    if (messageElement) {
+                        messageElement.innerText = '{{ 'pteroca.first_configuration.messages.email_checking_smtp_connection'|trans }}'
+                    }
+                    break;
+                case 5:
+                    if (messageElement) {
+                        messageElement.innerText = '{{ 'pteroca.first_configuration.messages.user_checking_account_creation'|trans }}'
+                    }
+                    break;
+            }
+
+            // Reset styles
+            textError.classList.remove('text-danger')
+            textError.classList.remove('text-success')
+            textError.classList.add('text-secondary')
+            textError.classList.remove('d-none')
+
+            // Show loading icon, hide others
+            if (loadingIcon) loadingIcon.classList.remove('d-none')
+            if (successIcon) successIcon.classList.add('d-none')
+            if (errorIcon) errorIcon.classList.add('d-none')
+        }
+
+        function handleStepError(step, error) {
+            const textError = document.querySelector(`.text-error[data-step="${step}"]`)
+            const messageElement = document.querySelector(`.step-message[data-step="${step}"]`)
+            const loadingIcon = document.querySelector(`.step-icon-loading[data-step="${step}"]`)
+            const successIcon = document.querySelector(`.step-icon-success[data-step="${step}"]`)
+            const errorIcon = document.querySelector(`.step-icon-error[data-step="${step}"]`)
+
+            if (!textError) {
+                return
+            }
+
+            // Update message and styles
+            if (messageElement) {
+                messageElement.innerText = error
+            }
+            textError.classList.add('text-danger')
+            textError.classList.remove('text-secondary')
+
+            // Show error icon, hide others
+            if (loadingIcon) loadingIcon.classList.add('d-none')
+            if (successIcon) successIcon.classList.add('d-none')
+            if (errorIcon) errorIcon.classList.remove('d-none')
+        }
+
+        function handleStepSuccess(step, message) {
+            const textElement = document.querySelector(`.text-error[data-step="${step}"]`)
+            const messageElement = document.querySelector(`.step-message[data-step="${step}"]`)
+            const loadingIcon = document.querySelector(`.step-icon-loading[data-step="${step}"]`)
+            const successIcon = document.querySelector(`.step-icon-success[data-step="${step}"]`)
+            const errorIcon = document.querySelector(`.step-icon-error[data-step="${step}"]`)
+
+            if (!textElement) {
+                return
+            }
+
+            // Update message and styles
+            if (messageElement) {
+                messageElement.innerText = message
+            }
+            textElement.classList.add('text-success')
+            textElement.classList.remove('text-secondary')
+
+            // Show success icon, hide others
+            if (loadingIcon) loadingIcon.classList.add('d-none')
+            if (successIcon) successIcon.classList.remove('d-none')
+            if (errorIcon) errorIcon.classList.add('d-none')
+        }
+
+        function showButtonLoader(button) {
+            if (!button || button.dataset.loading === 'true') return
+
+            button.dataset.loading = 'true'
+            button.dataset.originalText = button.innerHTML
+            button.disabled = true
+
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + button.dataset.originalText
+        }
+
+        function hideButtonLoader(button) {
+            if (!button || button.dataset.loading !== 'true') return
+
+            button.dataset.loading = 'false'
+            if (button.dataset.originalText) {
+                button.innerHTML = button.dataset.originalText
+                delete button.dataset.originalText
+            }
+            button.disabled = false
+        }
+
+        setCurrentStep(currentStep)
+    })
+</script>
+{% endblock %}

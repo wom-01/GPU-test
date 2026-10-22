@@ -1,0 +1,103 @@
+{% extends '@EasyAdmin/crud/edit.html.twig' %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const setAsEmptyCheckbox = document.querySelector('input[name="Setting[setAsEmpty]"]');
+
+            if (!setAsEmptyCheckbox) {
+                return;
+            }
+
+            const valueInput = document.querySelector('input[name^="Setting[value"]') ||
+                             document.querySelector('textarea[name^="Setting[value"]') ||
+                             document.querySelector('select[name^="Setting[value"]');
+
+            if (!valueInput) {
+                console.warn('Could not find value input field');
+                return;
+            }
+
+            let codeMirrorEditor = null;
+            let tomSelectInstance = null;
+            let isProgrammaticChange = false;
+
+            if (valueInput.tagName.toLowerCase() === 'textarea' && valueInput.hasAttribute('data-ea-code-editor-field')) {
+                setTimeout(() => {
+                    const wrapper = valueInput.nextElementSibling;
+                    if (wrapper && wrapper.classList.contains('CodeMirror')) {
+                        codeMirrorEditor = wrapper.CodeMirror;
+                        if (codeMirrorEditor) {
+                            codeMirrorEditor.on('change', handleValueChange);
+                        }
+                    }
+                }, 150);
+            }
+
+            if (valueInput.tagName.toLowerCase() === 'select') {
+                if (valueInput.tomselect) {
+                    tomSelectInstance = valueInput.tomselect;
+                    tomSelectInstance.on('change', handleValueChange);
+                } else {
+                    document.addEventListener('ea.autocomplete.connect', function(event) {
+                        if (event.detail.tomSelect && event.detail.tomSelect.input === valueInput) {
+                            tomSelectInstance = event.detail.tomSelect;
+                            tomSelectInstance.on('change', handleValueChange);
+                        }
+                    });
+                }
+            }
+
+            function handleValueChange() {
+                if (isProgrammaticChange) {
+                    return;
+                }
+
+                if (setAsEmptyCheckbox.checked) {
+                    setAsEmptyCheckbox.checked = false;
+                }
+            }
+
+            function handleCheckboxChange() {
+                if (setAsEmptyCheckbox.checked) {
+                    isProgrammaticChange = true;
+
+                    if (tomSelectInstance) {
+                        tomSelectInstance.clear();
+                    } else if (codeMirrorEditor) {
+                        codeMirrorEditor.setValue('');
+                    } else {
+                        if (valueInput.type === 'color') {
+                        } else {
+                            valueInput.value = '';
+                            valueInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+
+                        if (valueInput.type === 'file') {
+                            const formGroup = valueInput.closest('.form-group');
+                            if (formGroup) {
+                                const preview = formGroup.querySelector('.ea-fileupload-preview');
+                                if (preview) {
+                                    preview.remove();
+                                }
+
+                                const filenameDisplay = formGroup.querySelector('.custom-file-label');
+                                if (filenameDisplay) {
+                                    filenameDisplay.textContent = filenameDisplay.getAttribute('data-placeholder') || 'Choose file';
+                                }
+                            }
+                        }
+                    }
+
+                    isProgrammaticChange = false;
+                }
+            }
+
+            setAsEmptyCheckbox.addEventListener('change', handleCheckboxChange);
+
+            valueInput.addEventListener('input', handleValueChange);
+            valueInput.addEventListener('change', handleValueChange);
+        });
+    </script>
+{% endblock %}

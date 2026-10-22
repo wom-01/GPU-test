@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default('Błąd') }} | {{ get_title() }}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="{{ asset('assets/vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{{ asset('assets/vendor/font-awesome/css/all.min.css') }}">
+    <!-- Google Fonts -->
+    <link href="{{ asset('assets/vendor/fonts/inter.css') }}" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{{ asset(get_favicon()) }}">
+    
+    <!-- Error Pages Styles -->
+    <link rel="stylesheet" href="{{ template_asset('css/errors.css?v=' ~ get_app_version()) }}">
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>

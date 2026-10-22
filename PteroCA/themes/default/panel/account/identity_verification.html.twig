@@ -1,0 +1,27 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| 实名认证{% endblock %}
+
+{% block content %}
+<div class="identity-page mt-4">
+    <div class="identity-header">
+        <div class="identity-icon"><i class="fas fa-user-shield"></i></div>
+        <div><h3>实名认证</h3><p>订购 GPU 前需完成阿里云金融级实人认证</p></div>
+    </div>
+    <div class="identity-panel">
+        {% if user.realNameVerified %}
+            <div class="identity-result success"><i class="fas fa-circle-check"></i><div><b>认证已完成</b><span>您可以正常订购 GPU 算力。</span></div></div>
+        {% elseif not verificationConfigured %}
+            <div class="identity-result waiting"><i class="fas fa-clock"></i><div><b>认证服务准备中</b><span>管理员尚未填写阿里云接口凭证，当前无需认证。</span></div></div>
+        {% else %}
+            <form method="post" action="{{ path('identity_verification_start') }}" class="identity-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('identity_verification') }}">
+                <label><span>真实姓名</span><input name="real_name" autocomplete="name" required placeholder="请输入身份证上的姓名"></label>
+                <label><span>身份证号码</span><input name="id_number" autocomplete="off" required maxlength="18" placeholder="请输入身份证号码"></label>
+                <label class="identity-consent"><input type="checkbox" name="consent" value="1" required><span>我同意将姓名、身份证号提交至阿里云，仅用于本次实名认证。</span></label>
+                <button class="btn btn-primary" type="submit"><i class="fas fa-camera me-2"></i>开始人脸认证</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

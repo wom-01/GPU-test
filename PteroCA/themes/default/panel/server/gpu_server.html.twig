@@ -1,0 +1,85 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ server.serverProduct.name }}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block page_actions %}{% endblock %}
+{% block content_header_wrapper %}{% endblock %}
+
+{% block main %}
+{% set statusLabels = {
+    'pending': '等待节点',
+    'confirmed': '已确认',
+    'paid': '已付款',
+    'provisioning': '开通中',
+    'active': '使用中',
+    'suspended': '已暂停',
+    'completed': '已完成',
+    'cancelled': '已取消',
+    'terminated': '已终止',
+    'unknown': '状态未知'
+} %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <div class="text-muted small">GPU 实例</div>
+            <h2 class="mb-1">{{ server.serverProduct.name }}</h2>
+            <div class="text-muted">{{ order.orderNo }}</div>
+        </div>
+        <span class="badge bg-primary fs-6">{{ statusLabels[order.status|default('unknown')]|default('状态未知') }}</span>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h5 class="mb-4">连接信息</h5>
+            {% if order.accessIp|default(null) %}
+                <div class="row g-4">
+                    {% for item in [
+                        {label: 'IP 地址', value: order.accessIp, password: false},
+                        {label: 'SSH 端口', value: order.sshPort, password: false},
+                        {label: '用户名', value: order.sshUsername, password: false},
+                        {label: '密码', value: order.sshPassword, password: true}
+                    ] %}
+                        <div class="col-md-6">
+                            <div class="text-muted small mb-1">{{ item.label }}</div>
+                            <div class="input-group">
+                                <input class="form-control font-monospace gpu-credential-input" type="{{ item.password ? 'password' : 'text' }}" value="{{ item.value }}" readonly>
+                                {% if item.password %}
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleCredential(this)" title="显示或隐藏密码">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                {% endif %}
+                                <button class="btn btn-outline-primary" type="button" onclick="copyCredential(this)" title="复制">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">
+                    GPU 实例正在等待节点交付，完成后 IP、端口、用户名和密码会自动显示在这里。
+                    {% if order.provisionError|default(null) %}<div class="small mt-2">{{ order.provisionError }}</div>{% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <a href="{{ path('servers') }}" class="btn btn-outline-secondary mt-4">返回我的服务</a>
+</div>
+<script>
+    function toggleCredential(button) {
+        const input = button.closest('.input-group').querySelector('input');
+        const icon = button.querySelector('i');
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    }
+
+    async function copyCredential(button) {
+        const input = button.closest('.input-group').querySelector('input');
+        await navigator.clipboard.writeText(input.value);
+        const icon = button.querySelector('i');
+        icon.className = 'fas fa-check';
+        setTimeout(() => icon.className = 'fas fa-copy', 1200);
+    }
+</script>
+{% endblock %}

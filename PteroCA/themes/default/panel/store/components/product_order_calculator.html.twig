@@ -1,0 +1,135 @@
+{% block body_javascripts %}
+    {% set priceSeps = get_price_separators() %}
+    <script>
+        const priceDecimalSep = '{{ priceSeps.decimal|e('js') }}';
+        const priceThousandsSep = '{{ priceSeps.thousands|e('js') }}';
+
+        const unitTranslations = {
+            per_minute: '{{ 'pteroca.product.per_minute'|trans }}',
+            minutes: '{{ 'pteroca.product.minutes'|trans }}',
+            per_hour: '{{ 'pteroca.product.per_hour'|trans }}',
+            hours: '{{ 'pteroca.product.hours'|trans }}',
+            per_day: '{{ 'pteroca.product.per_day'|trans }}',
+            days: '{{ 'pteroca.product.days'|trans }}',
+            months: '{{ 'pteroca.product.months'|trans }}',
+            years: '{{ 'pteroca.product.years'|trans }}',
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const durationSelect = document.querySelector('#duration')
+            const slotQuantityInput = document.querySelector('#slots')
+
+            durationSelect.addEventListener('change', calculateOrder)
+            durationSelect.dispatchEvent(new Event('change'))
+
+            if (slotQuantityInput) {
+                slotQuantityInput.addEventListener('input', function() {
+                    durationSelect.dispatchEvent(new Event('change'))
+                })
+            }
+        })
+
+        function calculateOrder(event) {
+            const selectedOption = event.target.selectedOptions[0];
+            const value = parseFloat(selectedOption.dataset.value);
+            const unit = selectedOption.dataset.unit;
+            const price = parseFloat(selectedOption.dataset.price);
+            const type = selectedOption.dataset.type;
+
+            let finalPrice = price;
+            if (type === 'slot') {
+                const slotQuantityInput = document.querySelector('#slots');
+                if (slotQuantityInput) {
+                    const slotQuantity = parseInt(slotQuantityInput.value) || 1;
+                    finalPrice = price * slotQuantity;
+                }
+            }
+
+            let totalMinutes;
+
+            switch (unit) {
+                case 'minutes':
+                    totalMinutes = value;
+                    if (value === 1) {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = unitTranslations.per_minute;
+                    } else {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = value + ' ' + unitTranslations[unit];
+                    }
+                    break;
+                case 'hours':
+                    totalMinutes = value * 60;
+                    if (value === 1) {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = unitTranslations.per_hour;
+                    } else {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = value + ' ' + unitTranslations[unit];
+                    }
+                    break;
+                case 'days':
+                    totalMinutes = value * 60 * 24;
+                    if (value === 1) {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = unitTranslations.per_day;
+                    } else {
+                        document.querySelector('div[data-type="billingPeriod"] span').textContent = value + ' ' + unitTranslations[unit];
+                    }
+                    break;
+                case 'months':
+                    totalMinutes = value * 60 * 24 * 30;
+                    document.querySelector('div[data-type="billingPeriod"] span').textContent = value + ' ' + unitTranslations[unit];
+                    break;
+                case 'years':
+                    totalMinutes = value * 60 * 24 * 365;
+                    document.querySelector('div[data-type="billingPeriod"] span').textContent = value + ' ' + unitTranslations[unit];
+                    break;
+                default:
+                    console.error('Unsupported unit:', unit);
+                    return;
+            }
+
+            const isOnDemand = type === 'on_demand';
+
+            const showPerDay = !isOnDemand && totalMinutes >= 60 * 24,
+                showPerWeek = !isOnDemand && totalMinutes >= 60 * 24 * 7,
+                showPerMonth = !isOnDemand && totalMinutes >= 60 * 24 * 30;
+
+            document.querySelector('div[data-type="perDay"]').classList.toggle('d-none', !showPerDay);
+            document.querySelector('div[data-type="perWeek"]').classList.toggle('d-none', !showPerWeek);
+            document.querySelector('div[data-type="perMonth"]').classList.toggle('d-none', !showPerMonth);
+
+            const perMinute = finalPrice / totalMinutes;
+            const perHour = perMinute * 60;
+            const perDay = perHour * 24;
+            const perWeek = perDay * 7;
+            const perMonth = perDay * 30;
+
+            const result = {
+                perMinute: perMinute,
+                perHour: perHour,
+                perDay: perDay,
+                perWeek: perWeek,
+                perMonth: perMonth
+            };
+
+            document.querySelector('div[data-type="perMinute"] span').textContent = formatPrice(result.perMinute);
+            document.querySelector('div[data-type="perHour"] span').textContent = formatPrice(result.perHour);
+            document.querySelector('div[data-type="perDay"] span').textContent = formatPrice(result.perDay);
+            document.querySelector('div[data-type="perWeek"] span').textContent = formatPrice(result.perWeek);
+            document.querySelector('div[data-type="perMonth"] span').textContent = formatPrice(result.perMonth);
+            document.querySelector('div[data-type="totalPrice"] span').textContent = formatPrice(finalPrice);
+        }
+
+        function formatPrice(price) {
+            // Keep up to 4 decimal places, trimming trailing zeros but always showing at least 2
+            let str = price.toFixed(4).replace(/(\.\d{2})0+$/, '$1');
+
+            const dotIdx = str.indexOf('.');
+            let intPart = dotIdx >= 0 ? str.substring(0, dotIdx) : str;
+            let decPart = dotIdx >= 0 ? str.substring(dotIdx + 1) : '00';
+
+            if (priceThousandsSep !== '') {
+                intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, priceThousandsSep);
+            }
+
+            return intPart + priceDecimalSep + decPart;
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,613 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ 'pteroca.store.title'|trans }} - {{ product.name }}{% endblock %}
+
+{% block content %}
+    <div class="mt-4">
+        <!-- Header Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-header rounded-3 p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle me-3">
+                                <i class="fas fa-box p-3 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold">{{ product.name }}</h4>
+                                <p class="text-muted mb-0">{{ 'pteroca.product.product_order_details'|trans }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if widgetRegistry is defined %}
+            {% include '_partials/widget_area.html.twig' with {
+                'position': constant('App\\Core\\Enum\\WidgetPosition::TOP'),
+                'widgetContext': widgetContext,
+                'widgetRegistry': widgetRegistry,
+                'contextData': contextData
+            } %}
+        {% endif %}
+
+        <!-- Banner Section -->
+        {% if product.bannerPath %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                        <img src="{{ product.bannerPath }}" class="card-img-top" alt="{{ product.name }}" style="height: 300px; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Main Content -->
+        <div class="row g-4">
+            <!-- Product Information -->
+            <div class="col-lg-8">
+                <!-- Specifications Card -->
+                <div class="card border-0 shadow-sm rounded-3 mb-4">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <h5 class="mb-0 fw-semibold">{{ 'pteroca.product.information'|trans }}</h5>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-tag p-3 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.name'|trans }}:</strong>
+                                                <span class="ms-2">{{ product.name }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-memory p-3 text-info"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.ram'|trans }}:</strong>
+                                                <span class="ms-2">{{ ((product.memory * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-microchip p-3 text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.cpu'|trans }}:</strong>
+                                                <span class="ms-2">{{ product.cpu }}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-network-wired p-3 text-secondary"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.ports'|trans }}:</strong>
+                                                <span class="ms-2">{{ product.ports }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-hdd p-3 text-success"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.disk'|trans }}:</strong>
+                                                <span class="ms-2">{{ ((product.diskSpace * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-save p-3 text-danger"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.backups'|trans }}:</strong>
+                                                <span class="ms-2">{{ product.backups }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-dark bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-exchange-alt p-3 text-dark"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.swap'|trans }}:</strong>
+                                                <span class="ms-2">{{ ((product.swap * 1.048576) / 100)|round(0, 'ceil') * 100 }} MB</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item border-0 px-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle me-3">
+                                                <i class="fas fa-database p-3 text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ 'pteroca.product.databases'|trans }}:</strong>
+                                                <span class="ms-2">{{ product.dbCount }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Card -->
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header product-section-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file-alt me-2"></i>
+                            <h5 class="mb-0 fw-semibold">{{ 'pteroca.product.description'|trans }}</h5>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-0">{{ product.description|nl2br|safe_html }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Form -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 sticky-top product-order-card" style="top: 20px;">
+                    <div class="card-header bg-success">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            <h5 class="mb-0 fw-semibold">{{ 'pteroca.product.order'|trans }}</h5>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="{{ path('cart_buy', {id: product.id}) }}" method="post" id="product-order-form">
+                            <input type="hidden" name="purchase_token" value="{{ purchase_token }}">
+                            <input type="hidden" name="server_order[id]" value="{{ product.id }}">
+                            <input type="hidden" name="server_order[voucher]" value="">
+                            <input type="hidden" name="server_order[server-name]" value="{{ product.name }}">
+                            <input type="hidden" name="server_order[_token]" value="{{ csrf_token('server_order') }}">
+                            {% if product.allowAutoRenewal %}
+                                <input type="hidden" name="server_order[auto-renewal]" value="0">
+                            {% endif %}
+                            
+                            <div class="mb-4">
+                                <label for="duration" class="form-label fw-semibold">
+                                    <i class="fas fa-clock me-2 text-primary"></i>
+                                    {{ 'pteroca.product.period'|trans }}
+                                </label>
+                                <select id="duration" name="server_order[duration]" class="form-select form-select-lg">
+                                    {% for price in product.prices %}
+                                        {% if price.type.value == 'static' %}
+                                            <option value="{{ price.id }}" data-type="{{ price.type.value }}" data-value="{{ price.value }}" data-unit="{{ price.unit.value }}" data-price="{{ price.price }}">
+                                                {{ price.value }} {{ ('pteroca.product.' ~ price.unit.value)|trans }} - {{ price.price|format_price }} {{ get_currency() }}
+                                            </option>
+                                        {% elseif price.type.value == 'on_demand' %}
+                                            <option value="{{ price.id }}" data-type="{{ price.type.value }}" data-value="{{ price.value }}" data-unit="{{ price.unit.value }}" data-price="{{ price.price }}">
+                                                {{ 'pteroca.product.on_demand'|trans }} - {{ price.price|format_price }} {{ get_currency() }}/{{ 'pteroca.product.minute_short'|trans }}
+                                            </option>
+                                        {% elseif price.type.value == 'slot' %}
+                                            <option value="{{ price.id }}" data-type="{{ price.type.value }}" data-value="{{ price.value }}" data-unit="{{ price.unit.value }}" data-price="{{ price.price }}">
+                                                {{ 'pteroca.store.slot_pricing'|trans }} - {{ price.value }} {{ ('pteroca.product.' ~ price.unit.value)|trans }} - {{ price.price|format_price }} {{ get_currency() }}/{{ 'pteroca.product.slot'|trans }}
+                                            </option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            {% set hasSlotPrices = false %}
+                            {% for price in product.prices %}
+                                {% if price.type.value == 'slot' %}
+                                    {% set hasSlotPrices = true %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if eggs is empty %}
+                                <div class="alert alert-warning mb-4">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    {{ 'pteroca.store.no_eggs_available'|trans }}
+                                </div>
+                            {% else %}
+                                <div class="mb-4">
+                                    <label for="egg" class="form-label fw-semibold">
+                                        <i class="fas fa-cog me-2 text-warning"></i>
+                                        {{ 'pteroca.product.egg'|trans }}
+                                    </label>
+                                    <select id="egg" name="server_order[egg]" class="form-select form-select-lg">
+                                        {% for egg in eggs %}
+                                            <option value="{{ egg.id }}">{{ egg.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if product.allowChangeEgg %}
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle text-info me-1"></i>
+                                            {{ 'pteroca.product.egg_hint'|trans }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="mb-4">
+                                <label for="operating-system" class="form-label fw-semibold">
+                                    <i class="fas fa-desktop me-2 text-info"></i>
+                                    操作系统
+                                </label>
+                                <select id="operating-system" name="server_order[operating-system]" class="form-select form-select-lg" required>
+                                    <option value="ubuntu-22.04">Ubuntu 22.04 LTS</option>
+                                    <option value="ubuntu-24.04">Ubuntu 24.04 LTS</option>
+                                    <option value="debian-12">Debian 12</option>
+                                    <option value="rocky-linux-9">Rocky Linux 9</option>
+                                    <option value="windows-server-2022">Windows Server 2022</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="ssh-password" class="form-label fw-semibold">
+                                    <i class="fas fa-key me-2 text-warning"></i>
+                                    登录密码
+                                </label>
+                                <div class="input-group server-password-control">
+                                    <input type="password" id="ssh-password" name="server_order[ssh-password]" class="form-control form-control-lg"
+                                           minlength="8" maxlength="64" pattern="(?=.*[A-Za-z])(?=.*\d).{8,64}"
+                                           autocomplete="new-password" spellcheck="false"
+                                           aria-describedby="ssh-password-help"
+                                           placeholder="8-64 位，需同时包含字母和数字" required>
+                                    <button type="button" class="btn btn-outline-secondary server-password-toggle"
+                                            onclick="toggleServerPassword(this)"
+                                            aria-controls="ssh-password" aria-pressed="false"
+                                            aria-label="显示密码" title="显示密码">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div id="ssh-password-help" class="form-text server-password-help">用于服务器 SSH 或远程桌面登录，购买后仍可查看。</div>
+                            </div>
+
+                            {% if product.allowUserSelectLocation and groupedLocations is not empty %}
+                                <div class="mb-4">
+                                    <label for="location" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>
+                                        {{ 'pteroca.product.location'|trans }}
+                                    </label>
+                                    <select id="location" name="server_order[node]" class="form-select form-select-lg" required>
+                                        <option value="">{{ 'pteroca.store.please_select_location'|trans }}</option>
+                                        {% for locationName, locationData in groupedLocations %}
+                                            <optgroup label="{{ locationName }}">
+                                                {% for node in locationData.nodes %}
+                                                    <option value="{{ node.id }}" data-product-id="{{ node.productId }}">
+                                                        {{ node.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </optgroup>
+                                        {% endfor %}
+                                    </select>
+                                    <div id="location-availability-message" class="form-text mt-2"></div>
+                                </div>
+                            {% endif %}
+
+                            {% if hasSlotPrices %}
+                            <input type="hidden" id="server-order-slots" name="server_order[slots]" value="1">
+                            {% include 'components/slot_selector.html.twig' with {
+                                'initialValue': 1,
+                                'maxValue': 32,
+                                'minValue': 1,
+                                'showBadge': true
+                            } %}
+                            {% endif %}
+
+                            <!-- Internal price conversions are hidden from customers. -->
+                            <div class="mb-4 d-none" aria-hidden="true">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-calculator me-2 text-info"></i>
+                                    {{ 'pteroca.product.price_calculation'|trans }}
+                                </label>
+                                <div class="bg-light rounded-3 p-3">
+                                    <div class="row g-2">
+                                        <div class="col-12" data-type="perMinute">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted"></span>
+                                                <span class="fw-semibold"><span></span> {{ get_currency() }} / {{ 'pteroca.product.per_minute'|trans }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" data-type="perHour">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted"></span>
+                                                <span class="fw-semibold"><span></span> {{ get_currency() }} / {{ 'pteroca.product.per_hour'|trans }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" data-type="perDay">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">{{ 'pteroca.product.per_day'|trans }}</span>
+                                                <span class="fw-semibold"><span></span> {{ get_currency() }} / {{ 'pteroca.product.per_day'|trans }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" data-type="perWeek">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">{{ 'pteroca.product.per_week'|trans }}</span>
+                                                <span class="fw-semibold"><span></span> {{ get_currency() }} / {{ 'pteroca.product.per_week'|trans }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" data-type="perMonth">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">{{ 'pteroca.product.per_month'|trans }}</span>
+                                                <span class="fw-semibold"><span></span> {{ get_currency() }} / {{ 'pteroca.product.per_month'|trans }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Summary -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-receipt me-2 text-success"></i>
+                                    {{ 'pteroca.product.summary'|trans }}
+                                </label>
+                                <div class="product-summary-box rounded-3 p-3">
+                                    <div class="row g-2">
+                                        <div class="col-12" data-type="billingPeriod">
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">{{ 'pteroca.product.billing_period'|trans }}</span>
+                                                <span class="fw-semibold"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" data-type="totalPrice">
+                                            <div class="d-flex justify-content-between border-top pt-2">
+                                                <span class="fw-bold text-success">{{ 'pteroca.product.total_price'|trans }}</span>
+                                                <span class="fw-bold text-success fs-5"></span> {{ get_currency() }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if product.setupFee is not null and product.setupFee > 0 %}
+                            <div class="text-muted small mt-2 mb-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ 'pteroca.product.includes_setup_fee'|trans({
+                                    '%setupFee%': product.setupFee|format_price,
+                                    '%currency%': get_currency()
+                                }) }}
+                            </div>
+                            {% endif %}
+
+                            <div class="d-grid">
+                                {% if eggs is empty %}
+                                    <button type="button" class="btn secondary btn-lg rounded-3 fw-semibold" disabled>
+                                        <i class="fas fa-ban me-2"></i>
+                                        {{ 'pteroca.product.not_available'|trans }}
+                                    </button>
+                                    <div class="alert alert-danger mt-3 mb-0">
+                                        <small>
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {{ 'pteroca.store.product_configuration_unavailable'|trans }}
+                                        </small>
+                                    </div>
+                                {% else %}
+                                    <button type="submit" id="order-submit" class="btn success btn-lg rounded-3 fw-semibold p-3">
+                                        <i class="fas fa-shopping-bag me-2"></i>
+                                        {{ 'pteroca.product.order_now'|trans }}
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if widgetRegistry is defined %}
+            {% include '_partials/widget_area.html.twig' with {
+                'position': constant('App\\Core\\Enum\\WidgetPosition::BOTTOM'),
+                'widgetContext': widgetContext,
+                'widgetRegistry': widgetRegistry,
+                'contextData': contextData
+            } %}
+        {% endif %}
+    </div>
+
+    {% include 'panel/store/components/product_order_calculator.html.twig' %}
+
+    <script>
+        function toggleServerPassword(button) {
+            const input = button.closest('.input-group').querySelector('input');
+            const icon = button.querySelector('i');
+            const isRevealed = input.type === 'password';
+
+            input.type = isRevealed ? 'text' : 'password';
+            icon.classList.toggle('fa-eye', !isRevealed);
+            icon.classList.toggle('fa-eye-slash', isRevealed);
+            button.setAttribute('aria-pressed', isRevealed ? 'true' : 'false');
+            button.setAttribute('aria-label', isRevealed ? '隐藏密码' : '显示密码');
+            button.setAttribute('title', isRevealed ? '隐藏密码' : '显示密码');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('product-order-form');
+            const submitButton = document.getElementById('order-submit');
+
+            if (!form || !submitButton) {
+                return;
+            }
+
+            form.addEventListener('submit', function() {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>正在创建服务器...';
+            });
+        });
+    </script>
+    
+    {% if hasSlotPrices %}
+    <script>
+        const eggsConfiguration = {{ product.eggsConfiguration|raw }};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const durationSelect = document.getElementById('duration');
+            const slotSelection = document.getElementById('slot-selection');
+            const slotsRange = document.getElementById('slots');
+            const selectedSlotsDisplay = document.getElementById('selected-slots');
+            const eggSelect = document.getElementById('egg');
+            const slotsFormField = document.getElementById('server-order-slots');
+            
+            // Update max slots based on selected egg
+            function updateMaxSlots() {
+                const selectedEggId = parseInt(eggSelect.value);
+                let maxSlots = 10; // default
+                
+                if (eggsConfiguration && eggsConfiguration[selectedEggId]) {
+                    const eggConfig = eggsConfiguration[selectedEggId];
+                    if (eggConfig.variables && typeof eggConfig.variables === 'object') {
+                        for (const variableId in eggConfig.variables) {
+                            const variable = eggConfig.variables[variableId];
+                            if (variable.slot_variable === 'on' && variable.value) {
+                                maxSlots = parseInt(variable.value);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Get current value before updating max
+                const currentSlotValue = parseInt(slotsRange.value);
+                
+                // Update max slots for the range input
+                slotsRange.max = maxSlots;
+                slotsRange.nextElementSibling.textContent = maxSlots;
+                
+                // If current value exceeds new maximum, adjust it to the new maximum
+                if (currentSlotValue > maxSlots) {
+                    slotsRange.value = maxSlots;
+                    handleSlotsChange(); // Update the display text
+                    console.log(`Slot value adjusted from ${currentSlotValue} to ${maxSlots} due to egg change`);
+                }
+            }
+            
+            // Handle duration selection change
+            function handleDurationChange() {
+                const selectedOption = durationSelect.options[durationSelect.selectedIndex];
+                const priceType = selectedOption.getAttribute('data-type');
+
+                if (priceType === 'slot') {
+                    slotSelection.style.display = 'block';
+                    slotsRange.disabled = false;
+                    updateMaxSlots();
+                } else {
+                    slotSelection.style.display = 'none';
+                    slotsRange.disabled = true;
+                }
+            }
+            
+            // Handle slots range change
+            function handleSlotsChange() {
+                const slotsCount = slotsRange.value;
+                const slotText = slotsCount === '1' ? '{{ 'pteroca.product.slot'|trans }}' : '{{ 'pteroca.product.slots'|trans }}';
+                selectedSlotsDisplay.textContent = `${slotsCount} ${slotText}`;
+                if (slotsFormField) {
+                    slotsFormField.value = slotsCount;
+                }
+            }
+            
+            // Initialize
+            durationSelect.addEventListener('change', handleDurationChange);
+            slotsRange.addEventListener('input', handleSlotsChange);
+            eggSelect.addEventListener('change', function() {
+                if (slotSelection.style.display !== 'none') {
+                    updateMaxSlots();
+                    // Trigger price recalculation after slot maximum changes
+                    durationSelect.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            // Initial check
+            handleDurationChange();
+            handleSlotsChange();
+        });
+    </script>
+    {% endif %}
+
+    {% if product.allowUserSelectLocation and groupedLocations is not empty %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationSelect = document.getElementById('location');
+            const messageDiv = document.getElementById('location-availability-message');
+            const currentProductId = {{ product.id }};
+
+            locationSelect.addEventListener('change', function() {
+                const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+                const nodeId = selectedOption.value;
+                const nodeProductId = parseInt(selectedOption.getAttribute('data-product-id'));
+
+                if (!nodeId) {
+                    messageDiv.innerHTML = '';
+                    return;
+                }
+
+                if (nodeProductId !== currentProductId) {
+                    const durationSelect = document.getElementById('duration');
+                    const eggSelect = document.getElementById('egg');
+
+                    const urlParams = new URLSearchParams();
+                    urlParams.append('id', nodeProductId);
+                    urlParams.append('node', nodeId);
+                    if (durationSelect && durationSelect.value) {
+                        urlParams.append('duration', durationSelect.value);
+                    }
+                    if (eggSelect && eggSelect.value) {
+                        urlParams.append('egg', eggSelect.value);
+                    }
+
+                    window.location.href = '{{ path('panel', { routeName: 'panel_store_product' }) }}&' + urlParams.toString();
+                    return;
+                }
+
+                messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>{{ 'pteroca.store.checking_availability'|trans }}';
+                messageDiv.className = 'form-text mt-2 text-muted';
+
+                fetch('{{ path('api_check_node_resources') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        productId: currentProductId,
+                        nodeId: nodeId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.available) {
+                        messageDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i>{{ 'pteroca.store.location_available'|trans }}';
+                        messageDiv.className = 'form-text mt-2 text-success';
+                    } else {
+                        messageDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>' + data.message;
+                        messageDiv.className = 'form-text mt-2 text-warning';
+                    }
+                })
+                .catch(error => {
+                    messageDiv.innerHTML = '<i class="fas fa-times-circle me-1"></i>{{ 'pteroca.store.location_check_failed'|trans }}';
+                    messageDiv.className = 'form-text mt-2 text-danger';
+                });
+            });
+        });
+    </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ get_title() }}{% endblock %}</title>
+    <link rel="icon" href="{{ get_favicon() }}">
+
+    {# Inter 字体（本地托管）#}
+    <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/inter.css') }}">
+
+    {% block stylesheets %}
+        <link href="{{ asset('assets/vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('assets/vendor/font-awesome/css/all.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/theme/default/css/landing.css') }}">
+    {% endblock %}
+
+    {% block head_custom_scripts %}
+        {% include 'components/custom_head_scripts.html.twig' %}
+    {% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+    {% block navigation %}
+        <nav class="navbar navbar-expand-lg marketplace-nav">
+            <div class="container">
+                <a class="navbar-brand" href="{{ path('homepage') }}">
+                    <img src="{{ get_logo() }}" alt="{{ get_title() }}" height="40" class="d-inline-block align-text-top me-2">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav marketplace-links me-auto align-items-center">
+                        <li class="nav-item"><a class="nav-link" href="{{ path('landing_store') }}">算力市场</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('landing_store') }}">GPU 云服务器</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#delivery">服务保障</a></li>
+                    </ul>
+                    <ul class="navbar-nav align-items-center">
+                        {# Left positioned buttons #}
+                        {% if navigationButtons is defined %}
+                            {% for button in navigationButtons %}
+                                {% if button.position == 'left' %}
+                                    {{ include('components/nav-button.html.twig', {button: button}) }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {# Right positioned buttons #}
+                        {% if navigationButtons is defined %}
+                            {% for button in navigationButtons %}
+                                {% if button.position == 'right' %}
+                                    {{ include('components/nav-button.html.twig', {button: button}) }}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {# Fallback to hardcoded buttons if navigationButtons not available #}
+                            {% if app.user %}
+                                <li class="nav-item">
+                                    <a class="btn btn-primary btn-sm ms-3" href="{{ path('panel') }}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>{{ 'pteroca.landing.nav.dashboard'|trans }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ path('app_login') }}">{{ 'pteroca.landing.nav.login'|trans }}</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="btn btn-primary btn-sm ms-3" href="{{ path('app_register') }}">{{ 'pteroca.landing.nav.get_started'|trans }}</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    {% endblock %}
+
+    <main class="flex-grow-1">
+        {% block body %}{% endblock %}
+    </main>
+
+    {% block footer %}
+        <footer class="site-footer">
+            <div class="container">
+                <div class="footer-main">
+                    <div class="footer-brand">
+                        <img src="{{ get_logo() }}" alt="{{ get_title() }}">
+                        <p>稳定、灵活的 GPU 算力租赁平台，为 AI 训练、推理和高性能计算提供可靠资源。</p>
+                    </div>
+
+                    <div class="footer-column">
+                        <h3>产品</h3>
+                        <a href="{{ path('landing_store') }}">GPU 算力商城</a>
+                        <a href="{{ path('panel', {routeName: 'servers'}) }}">我的服务器</a>
+                        <a href="{{ path('panel', {routeName: 'recharge_balance'}) }}">账户充值</a>
+                    </div>
+
+                    <div class="footer-column">
+                        <h3>服务支持</h3>
+                        <a href="{{ path('app_register') }}">注册账户</a>
+                        <a href="{{ path('app_login') }}">客户登录</a>
+                        <a href="{{ path('terms_of_service') }}">服务条款</a>
+                    </div>
+
+                    <div class="footer-column footer-contact">
+                        <h3>联系我们</h3>
+                        <p><i class="fas fa-envelope"></i><a href="mailto:realmcloud@163.com">realmcloud@163.com</a></p>
+                        <p><i class="fas fa-clock"></i><span>服务时间：9:00 - 22:00</span></p>
+                        <p><i class="fas fa-headset"></i><span>在线技术支持</span></p>
+                    </div>
+                </div>
+
+            </div>
+        </footer>
+    {% endblock %}
+
+    {% block javascripts %}
+        <script src="{{ asset('assets/vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    {% endblock %}
+</body>
+</html>

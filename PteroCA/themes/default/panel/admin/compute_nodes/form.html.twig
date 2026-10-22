@@ -1,0 +1,155 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ isEdit ? '编辑算力节点' : '添加算力节点' }}{% endblock %}
+
+{% block responsive_header_logo %}
+    <a class="responsive-logo" title="{{ ea.dashboardTitle|striptags }}" href="{{ path('panel') }}">{{ ea.dashboardTitle|raw }}</a>
+{% endblock %}
+
+{% block header_logo %}
+    <a class="logo" title="{{ ea.dashboardTitle|striptags }}" href="{{ path('panel') }}">
+        <span class="logo-custom">{{ ea.dashboardTitle|raw }}</span>
+        <span class="logo-compact"><i class="fas fa-home"></i></span>
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="compute-node-form-page mt-4">
+        <div class="node-form-header mb-4">
+            <div>
+                <a class="node-back-link" href="{{ path('admin_compute_nodes') }}"><i class="fas fa-arrow-left"></i>返回算力节点</a>
+                <h3 class="mb-1">{{ isEdit ? '编辑算力节点' : '添加算力节点' }}</h3>
+                <p class="mb-0">IP 直连与 Docker 至少配置一种；测试节点不要求 Docker。</p>
+            </div>
+        </div>
+
+        <form method="post" class="node-form" id="compute-node-form">
+            <input type="hidden" name="_token" value="{{ csrf_token(isEdit ? 'compute_node_edit_' ~ node.ID : 'compute_node_create') }}">
+
+            <section class="node-form-section">
+                <div class="node-section-title"><i class="fas fa-microchip"></i><div><h5>基础资源</h5><p>用于商品匹配和容量判断。</p></div></div>
+                <div class="node-form-grid">
+                    <label class="node-field node-field-wide"><span>节点名称 <b>*</b></span><input class="form-control" name="name" value="{{ node.name|default('') }}" required placeholder="例如：上海 A100-80G-01"></label>
+                    <label class="node-field"><span>区域</span><input class="form-control" name="region" value="{{ node.region|default('') }}" placeholder="例如：上海"></label>
+                    <label class="node-field"><span>GPU 型号</span><input class="form-control" name="gpuName" value="{{ node.gpuName|default('') }}" placeholder="例如：NVIDIA A100 80GB"></label>
+                    <label class="node-field"><span>GPU 数量</span><input class="form-control" type="number" min="0" name="gpuCount" value="{{ node.gpuCount|default(0) }}"></label>
+                    <label class="node-field"><span>单卡显存（GB）</span><input class="form-control" type="number" min="0" name="memoryCapacity" value="{{ node.memoryCapacity|default(0) }}"></label>
+                    <label class="node-field"><span>CPU 核心</span><input class="form-control" type="number" min="0" name="cpu" value="{{ node.cpu|default(0) }}"></label>
+                    <label class="node-field"><span>内存（GB）</span><input class="form-control" type="number" min="0" name="memory" value="{{ node.memory|default(0) }}"></label>
+                    <label class="node-field"><span>系统盘（GB）</span><input class="form-control" type="number" min="0" name="systemDisk" value="{{ node.systemDisk|default(0) }}"></label>
+                    <label class="node-field"><span>数据盘（GB）</span><input class="form-control" type="number" min="0" name="dataDisk" value="{{ node.dataDisk|default(0) }}"></label>
+                </div>
+            </section>
+
+            <section class="node-form-section">
+                <div class="node-section-title"><i class="fas fa-network-wired"></i><div><h5>IP 直连交付</h5><p>非 Docker 服务器填写这里，订单会直接交付 IP、用户名和密码。</p></div></div>
+                <div class="node-form-grid">
+                    <label class="node-field"><span>公网 IP</span><input class="form-control" name="publicIp" value="{{ node.publicIp|default('') }}" inputmode="decimal" placeholder="例如：203.0.113.10"></label>
+                    <label class="node-field"><span>内网 IP</span><input class="form-control" name="privateIp" value="{{ node.privateIp|default('') }}" inputmode="decimal" placeholder="无公网 IP 时填写"></label>
+                    <label class="node-field"><span>SSH 端口</span><input class="form-control" type="number" min="1" max="65535" name="sshPort" value="{{ node.sshPort|default(22) }}"></label>
+                    <label class="node-field"><span>SSH 用户名</span><input class="form-control" name="username" value="{{ node.username|default('') }}" autocomplete="off" placeholder="root 或 ubuntu"></label>
+                    <label class="node-field node-field-wide"><span>SSH 密码{% if node.passwordConfigured|default(false) %}<em>已配置</em>{% endif %}</span><input class="form-control" type="password" name="password" autocomplete="new-password" placeholder="{{ node.passwordConfigured|default(false) ? '留空则保留原密码' : 'IP 直连交付时必填' }}"></label>
+                </div>
+            </section>
+
+            <section class="node-form-section">
+                <div class="node-section-title"><i class="fab fa-docker"></i><div><h5>Docker 容器接入</h5><p>需要自动创建容器时填写；普通物理机或虚拟机可留空。</p></div></div>
+                <div class="node-form-grid">
+                    <label class="node-field node-field-wide"><span>Docker 连接地址</span><input class="form-control" name="dockerAddress" value="{{ node.dockerAddress|default('') }}" placeholder="例如：tcp://10.0.0.8:2376"></label>
+                    <label class="node-field node-field-wide"><span>HAMi-core 目录</span><input class="form-control" name="hamiCore" value="{{ node.hamiCore|default('') }}" placeholder="仅显存切割时填写"></label>
+                    <label class="node-toggle node-field-wide"><input type="checkbox" name="useTls" value="1" {{ node.useTls|default(true) ? 'checked' : '' }}><span class="node-toggle-control"></span><span><strong>使用 TLS</strong><small>Docker 地址启用 TLS 时配置证书。</small></span></label>
+                </div>
+                <div class="node-cert-grid" id="node-cert-fields">
+                    <label class="node-field"><span>CA 证书{% if node.caCertConfigured|default(false) %}<em>已配置</em>{% endif %}</span><textarea class="form-control" rows="5" name="caCert" placeholder="{{ node.caCertConfigured|default(false) ? '留空则保留原证书' : '粘贴 CA 证书内容' }}"></textarea></label>
+                    <label class="node-field"><span>客户端证书{% if node.clientCertConfigured|default(false) %}<em>已配置</em>{% endif %}</span><textarea class="form-control" rows="5" name="clientCert" placeholder="{{ node.clientCertConfigured|default(false) ? '留空则保留原证书' : '粘贴客户端证书内容' }}"></textarea></label>
+                    <label class="node-field"><span>客户端私钥{% if node.clientKeyConfigured|default(false) %}<em>已配置</em>{% endif %}</span><textarea class="form-control" rows="5" name="clientKey" placeholder="{{ node.clientKeyConfigured|default(false) ? '留空则保留原私钥' : '粘贴客户端私钥内容' }}"></textarea></label>
+                </div>
+            </section>
+
+            <section class="node-form-section node-form-section-last">
+                <div class="node-section-title"><i class="fas fa-sliders"></i><div><h5>发布设置</h5><p>只有已上架节点会参与自动分配。</p></div></div>
+                <div class="node-form-grid">
+                    <label class="node-toggle node-field-wide"><input type="checkbox" name="isOnShelf" value="1" {{ node.isOnShelf|default(true) ? 'checked' : '' }}><span class="node-toggle-control"></span><span><strong>上架节点</strong><small>关闭后不会接收新订单。</small></span></label>
+                    <label class="node-field node-field-wide"><span>备注</span><textarea class="form-control" rows="3" name="remark" placeholder="内部备注，不会展示给客户">{{ node.remark|default('') }}</textarea></label>
+                </div>
+            </section>
+
+            <div class="node-form-actions">
+                <a class="btn btn-outline-secondary" href="{{ path('admin_compute_nodes') }}">取消</a>
+                <button class="btn btn-primary" type="submit"><i class="fas fa-check me-2"></i>{{ isEdit ? '保存修改' : '添加节点' }}</button>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .compute-node-form-page { max-width: 1080px; color: #183247; }
+        .node-form-header h3 { color: #102c40; font-weight: 750; }
+        .node-form-header p, .node-section-title p { color: #688397; }
+        .node-back-link { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 13px; color: #078fc5; text-decoration: none; font-weight: 650; }
+        .node-form { overflow: hidden; border: 1px solid #d5e5ed; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(27, 72, 96, .06); }
+        .node-form-section { padding: 26px 28px; border-bottom: 1px solid #dfebf1; }
+        .node-form-section-last { border-bottom: 0; }
+        .node-section-title { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 20px; }
+        .node-section-title > i { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 7px; background: #eaf8fd; color: #0c96c9; }
+        .node-section-title h5 { margin: 0 0 3px; color: #17364b; font-weight: 750; }
+        .node-section-title p { margin: 0; font-size: 13px; }
+        .node-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .node-cert-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+        .node-field { display: flex; min-width: 0; flex-direction: column; gap: 7px; }
+        .node-field-wide { grid-column: 1 / -1; }
+        .node-field > span { color: #3d596b; font-size: 13px; font-weight: 700; }
+        .node-field b { color: #cf3e3e; }
+        .node-field em { margin-left: 8px; padding: 2px 6px; border-radius: 4px; background: #e4f9ed; color: #16764a; font-size: 11px; font-style: normal; }
+        .node-field .form-control { min-height: 42px; border-color: #cbdde6; color: #183247; }
+        .node-field .form-control:focus { border-color: #18a6d7; box-shadow: 0 0 0 3px rgba(24, 166, 215, .12); }
+        .node-toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .node-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+        .node-toggle-control { position: relative; width: 44px; height: 24px; flex: 0 0 auto; border-radius: 12px; background: #c7d4db; transition: background .15s ease; }
+        .node-toggle-control::after { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); content: ''; transition: transform .15s ease; }
+        .node-toggle input:checked + .node-toggle-control { background: #0d9dd0; }
+        .node-toggle input:checked + .node-toggle-control::after { transform: translateX(20px); }
+        .node-toggle > span:last-child { display: flex; flex-direction: column; }
+        .node-toggle strong { color: #28495d; font-size: 14px; }
+        .node-toggle small { color: #78909f; }
+        .node-form-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 28px; border-top: 1px solid #dce8ee; background: #f7fbfd; }
+        @media (max-width: 760px) {
+            .node-form-section { padding: 22px 18px; }
+            .node-form-grid, .node-cert-grid { grid-template-columns: 1fr; }
+            .node-field-wide { grid-column: auto; }
+            .node-form-actions { padding: 16px 18px; }
+            .node-form-actions .btn { flex: 1; }
+        }
+    </style>
+
+    <script>
+        (() => {
+            const form = document.getElementById('compute-node-form');
+            const tls = form.querySelector('[name="useTls"]');
+            const certs = document.getElementById('node-cert-fields');
+            const syncTlsFields = () => { certs.hidden = !tls.checked; };
+            tls.addEventListener('change', syncTlsFields);
+            syncTlsFields();
+
+            form.addEventListener('submit', (event) => {
+                const value = (name) => form.querySelector(`[name="${name}"]`).value.trim();
+                const hasIp = value('publicIp') !== '' || value('privateIp') !== '';
+                const hasDocker = value('dockerAddress') !== '';
+                if (!hasIp && !hasDocker) {
+                    event.preventDefault();
+                    window.alert('请至少填写公网/内网 IP，或填写 Docker 连接地址。');
+                    return;
+                }
+                if (hasIp && value('username') === '') {
+                    event.preventDefault();
+                    window.alert('IP 直连交付必须填写 SSH 用户名。');
+                    return;
+                }
+                const passwordConfigured = {{ node.passwordConfigured|default(false) ? 'true' : 'false' }};
+                if (hasIp && !passwordConfigured && value('password') === '') {
+                    event.preventDefault();
+                    window.alert('IP 直连交付必须填写 SSH 密码。');
+                }
+            });
+        })();
+    </script>
+{% endblock %}

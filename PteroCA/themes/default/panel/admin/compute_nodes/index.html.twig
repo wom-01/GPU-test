@@ -1,0 +1,180 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| 算力节点{% endblock %}
+
+{% block responsive_header_logo %}
+    <a class="responsive-logo" title="{{ ea.dashboardTitle|striptags }}" href="{{ path('panel') }}">
+        {{ ea.dashboardTitle|raw }}
+    </a>
+{% endblock %}
+
+{% block header_logo %}
+    <a class="logo" title="{{ ea.dashboardTitle|striptags }}" href="{{ path('panel') }}">
+        <span class="logo-custom">{{ ea.dashboardTitle|raw }}</span>
+        <span class="logo-compact"><i class="fas fa-home"></i></span>
+    </a>
+{% endblock %}
+
+{% block content %}
+    {% set shelfCount = 0 %}
+    {% set connectedCount = 0 %}
+    {% for node in nodes %}
+        {% if node.isOnShelf|default(false) %}{% set shelfCount = shelfCount + 1 %}{% endif %}
+        {% if node.dockerStatus|default('') == 'connected' %}{% set connectedCount = connectedCount + 1 %}{% endif %}
+    {% endfor %}
+
+    <div class="compute-nodes-page mt-4">
+        <div class="compute-nodes-header mb-4">
+            <div>
+                <h3 class="mb-1"><i class="fas fa-microchip me-2"></i>算力节点</h3>
+                <p class="mb-0">统一管理 GPU 服务器，可使用 IP 直连或 Docker 接入。</p>
+            </div>
+            {% if is_granted('create_server') %}
+                <a class="btn btn-primary" href="{{ path('admin_compute_node_new') }}">
+                    <i class="fas fa-plus me-2"></i>添加算力节点
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="node-summary mb-4">
+            <div><strong>{{ nodes|length }}</strong><span>节点总数</span></div>
+            <div><strong>{{ shelfCount }}</strong><span>已上架</span></div>
+            <div><strong>{{ connectedCount }}</strong><span>Docker 已连接</span></div>
+        </div>
+
+        {% if connectionError %}
+            <div class="alert alert-danger">
+                <i class="fas fa-triangle-exclamation me-2"></i>无法读取算力节点：{{ connectionError }}
+            </div>
+        {% endif %}
+
+        <div class="node-table-panel">
+            {% if nodes is empty and not connectionError %}
+                <div class="node-empty">
+                    <i class="fas fa-server"></i>
+                    <h5>还没有算力节点</h5>
+                    <p>添加第一台 GPU 服务器后，商城订单即可从这里自动分配。</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>节点</th>
+                                <th>GPU / 资源</th>
+                                <th>接入方式</th>
+                                <th>Docker 状态</th>
+                                <th>上架状态</th>
+                                <th class="text-end">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for node in nodes %}
+                            {% set hasIp = node.publicIp|default('') or node.privateIp|default('') %}
+                            {% set hasDocker = node.dockerAddress|default('') %}
+                            <tr>
+                                <td>
+                                    <div class="node-name">{{ node.name|default('未命名节点') }}</div>
+                                    <div class="node-meta">#{{ node.ID }}{% if node.region|default('') %} · {{ node.region }}{% endif %}</div>
+                                </td>
+                                <td>
+                                    <div class="node-gpu">{{ node.gpuName|default(node.name|default('未填写型号')) }}</div>
+                                    <div class="node-meta">
+                                        {{ node.gpuCount|default(0) }} 卡 · {{ node.cpu|default(0) }} 核 · {{ node.memory|default(0) }} GB
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="node-access-tags">
+                                        {% if hasIp %}<span class="node-badge info"><i class="fas fa-network-wired"></i>IP 直连</span>{% endif %}
+                                        {% if hasDocker %}<span class="node-badge neutral"><i class="fab fa-docker"></i>Docker</span>{% endif %}
+                                    </div>
+                                    {% if hasIp %}
+                                        <div class="node-meta mt-1">{{ node.publicIp|default(node.privateIp|default('')) }}:{{ node.sshPort|default(22) }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if node.dockerStatus|default('') == 'connected' %}
+                                        <span class="node-badge success"><i class="fas fa-circle-check"></i>已连接</span>
+                                    {% elseif node.dockerStatus|default('') == 'failed' %}
+                                        <span class="node-badge danger"><i class="fas fa-circle-xmark"></i>连接失败</span>
+                                    {% elseif not hasDocker or node.dockerStatus|default('') == 'not_configured' %}
+                                        <span class="node-badge neutral">未配置</span>
+                                    {% else %}
+                                        <span class="node-badge warning">待检测</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="node-badge {{ node.isOnShelf|default(false) ? 'success' : 'neutral' }}">
+                                        {{ node.isOnShelf|default(false) ? '已上架' : '已下架' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="node-actions">
+                                        {% if is_granted('edit_server') %}
+                                            <a class="btn btn-sm btn-outline-primary" href="{{ path('admin_compute_node_edit', {id: node.ID}) }}" title="编辑节点">
+                                                <i class="fas fa-pen"></i><span>编辑</span>
+                                            </a>
+                                            <form method="post" action="{{ path('admin_compute_node_shelf', {id: node.ID}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('compute_node_shelf_' ~ node.ID) }}">
+                                                <input type="hidden" name="isOnShelf" value="{{ node.isOnShelf|default(false) ? '0' : '1' }}">
+                                                <button class="btn btn-sm btn-outline-secondary" title="{{ node.isOnShelf|default(false) ? '下架节点' : '上架节点' }}">
+                                                    <i class="fas {{ node.isOnShelf|default(false) ? 'fa-arrow-down' : 'fa-arrow-up' }}"></i>
+                                                    <span>{{ node.isOnShelf|default(false) ? '下架' : '上架' }}</span>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        {% if is_granted('delete_server') %}
+                                            <form method="post" action="{{ path('admin_compute_node_delete', {id: node.ID}) }}" onsubmit="return confirm('确定删除这个算力节点吗？有未结束订单的节点不会被删除。')">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('compute_node_delete_' ~ node.ID) }}">
+                                                <button class="btn btn-sm btn-outline-danger" title="删除节点"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        .compute-nodes-page { color: #183247; }
+        .compute-nodes-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .compute-nodes-header h3 { color: #102c40; font-weight: 750; }
+        .compute-nodes-header p { color: #688397; }
+        .node-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #d6e6ee; background: #f8fcfe; border-radius: 8px; }
+        .node-summary > div { display: flex; align-items: baseline; gap: 10px; padding: 16px 20px; border-right: 1px solid #d6e6ee; }
+        .node-summary > div:last-child { border-right: 0; }
+        .node-summary strong { color: #078fc5; font-size: 22px; }
+        .node-summary span { color: #688397; }
+        .node-table-panel { overflow: hidden; border: 1px solid #d5e5ed; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(27, 72, 96, .06); }
+        .node-table-panel thead th { padding: 14px 16px; border-bottom-color: #d5e5ed; background: #f3f9fc; color: #597487; font-size: 13px; font-weight: 700; white-space: nowrap; }
+        .node-table-panel tbody td { padding: 16px; border-bottom-color: #e3edf2; }
+        .node-table-panel tbody tr:last-child td { border-bottom: 0; }
+        .node-name, .node-gpu { color: #17364b; font-weight: 700; }
+        .node-meta { color: #7890a0; font-size: 12px; }
+        .node-access-tags, .node-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        .node-actions { justify-content: flex-end; flex-wrap: nowrap; }
+        .node-actions form { margin: 0; }
+        .node-badge { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 3px 9px; border: 1px solid transparent; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .node-badge.success { border-color: #9be3bd; background: #e4f9ed; color: #16764a; }
+        .node-badge.danger { border-color: #efb4b4; background: #fff0f0; color: #b23c3c; }
+        .node-badge.warning { border-color: #efd696; background: #fff8e3; color: #936516; }
+        .node-badge.info { border-color: #9bd9ee; background: #eaf8fd; color: #087ba5; }
+        .node-badge.neutral { border-color: #d1dce2; background: #f3f6f8; color: #617683; }
+        .node-empty { padding: 64px 24px; text-align: center; color: #79909e; }
+        .node-empty > i { margin-bottom: 16px; color: #16a3d5; font-size: 34px; }
+        .node-empty h5 { color: #24465a; }
+        @media (max-width: 900px) {
+            .compute-nodes-header { align-items: flex-start; flex-direction: column; }
+            .compute-nodes-header .btn { width: 100%; }
+            .node-summary { grid-template-columns: 1fr; }
+            .node-summary > div { border-right: 0; border-bottom: 1px solid #d6e6ee; }
+            .node-summary > div:last-child { border-bottom: 0; }
+            .node-actions .btn span { display: none; }
+        }
+    </style>
+{% endblock %}

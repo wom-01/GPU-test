@@ -1,0 +1,35 @@
+{% block main %}
+    <div class="nav-tabs-custom form-tabs-tablist">
+        <ul class="nav nav-tabs" role="tablist">
+            {% for tab in visibleTabs %}
+                <li class="nav-item">
+                    <a class="nav-link {% if tab.isDefault %}active{% endif %}"
+                       href="#{{ tab.id }}"
+                       data-bs-toggle="tab"
+                       role="tab">
+                        {{ tab.label|trans }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tabHash = window.location.hash;
+
+            if (tabHash) {
+                document.querySelector(`a[href="${tabHash}"]`).click();
+            }
+
+            document.querySelectorAll('.nav-tabs-custom a').forEach(function (element) {
+                element.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    window.location.hash = event.target.getAttribute('href');
+                });
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'panel/layout/split_screen.html.twig' %}
+
+{% set loadLoginJs = true %}
+
+{% block page_title %}{{ get_title() }} | {{ 'pteroca.login.title'|trans }}{% endblock %}
+
+{% block form_content %}
+    <!-- Error Message -->
+    {% if error|default(false) %}
+        <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Login Form -->
+    {{ form_start(loginForm, {'action': action|default(path('app_login')), 'method': 'POST', 'attr': {'novalidate': 'novalidate'}}) }}
+
+        {# Renderuj pola email i password #}
+        {{ form_row(loginForm.email) }}
+        {{ form_row(loginForm.password) }}
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% if loginForm.remember_me is defined %}
+                <div class="form-check">
+                    {{ form_widget(loginForm.remember_me, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(loginForm.remember_me, null, {'label_attr': {'class': 'form-check-label text-muted small'}}) }}
+                </div>
+            {% else %}
+                <div></div>
+            {% endif %}
+
+            {% if forgot_password_enabled|default(false) %}
+                <a href="{{ forgot_password_path|default('#') }}" class="text-decoration-none small">
+                    {{ 'pteroca.login.forgot_password'|trans }}
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- reCAPTCHA -->
+        {% if get_captcha_site_key() %}
+            <div class="d-flex justify-content-center mb-3">
+                <div class="g-recaptcha" data-sitekey="{{ get_captcha_site_key() }}"></div>
+            </div>
+        {% endif %}
+
+        {# Renderuj wszystkie dodatkowe pola z pluginów #}
+        {% for field in loginForm %}
+            {% if field.vars.name not in ['email', 'password', 'remember_me', '_token'] %}
+                {{ form_row(field) }}
+            {% endif %}
+        {% endfor %}
+
+        {# Hardkodowany CSRF token - obsługiwany przez UserAuthenticator #}
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <!-- Submit Button -->
+        <div class="d-grid mb-3">
+            <button type="submit" class="btn primary btn-lg fw-semibold p-4">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                <i class="fa-solid fa-circle-notch fa-spin me-2 d-none"></i>
+                {{ 'pteroca.login.sign_in'|trans }}
+            </button>
+        </div>
+    {{ form_end(loginForm) }}
+{% endblock %}

@@ -111,3 +111,17 @@ API_BASE_URL=http://127.0.0.1:12359 python3 smoke_real.py
 `test_client.py` 和 `smoke_real.py` 会调用预占、开通及订单生命周期接口。请只对隔离的
 演示环境或专用测试节点运行；默认使用本机地址，避免意外操作生产资源。连接生产环境前，
 请明确设置 `API_BASE_URL`，并确认测试主机和清理流程。
+
+## PteroCA 商城与客户中心
+
+`PteroCA/` 包含界云算力商城与客户中心（Symfony / PteroCA）源码，包括主题模板、业务代码、数据库迁移、部署配置和本地前端资源。
+
+```bash
+cd PteroCA
+composer install
+cp .env.example .env
+# 按部署环境填写 APP_SECRET、DATABASE_URL、邮件及其他服务配置
+php bin/console doctrine:migrations:migrate
+```
+
+仓库不包含生产 `.env`、Composer `vendor/`、运行缓存/日志、用户上传文件、部署备份和生产数据库。`vendor/` 使用 `composer install` 根据 `composer.lock` 安装。

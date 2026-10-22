@@ -1,0 +1,293 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block title %}| {{ 'pteroca.servers.title'|trans }}{% endblock %}
+
+{% block content %}
+    <div class="mt-4">
+        <!-- Header Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-header rounded-3 p-4 mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle me-3">
+                                <i class="fas fa-server p-3 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold">{{ 'pteroca.servers.title'|trans }}</h4>
+                                <p class="text-muted mb-0">{{ 'pteroca.servers.description'|trans }}</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group me-2" role="group">
+                                <button type="button" class="btn btn-outline-primary active" id="view-cards">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="view-list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if widgetRegistry is defined %}
+            {% include '_partials/widget_area.html.twig' with {
+                'position': constant('App\\Core\\Enum\\WidgetPosition::TOP'),
+                'widgetContext': widgetContext,
+                'widgetRegistry': widgetRegistry,
+                'contextData': contextData
+            } %}
+        {% endif %}
+
+        {% if servers|length > 0 %}
+            <div id="cards-view">
+                <div class="row">
+                    {% for server in servers %}
+                        <div class="col-12 col-md-6 col-xl-4 mb-4">
+                            {% include 'panel/servers/components/server.html.twig' %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="list-view" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table datagrid text-center">
+                        <thead>
+                            <tr>
+                                <th class="pb-2">{{ 'pteroca.servers.status'|trans }}</th>
+                                <th class="pb-2">{{ 'pteroca.servers.name'|trans }}</th>
+                                <th class="pb-2">{{ 'pteroca.servers.ip_address'|trans }}</th>
+                                <th class="pb-2">用户名</th>
+                                <th class="pb-2">密码</th>
+                                <th class="pb-2">操作系统</th>
+                                <th class="pb-2">{{ 'pteroca.servers.valid_until'|trans }}</th>
+                                <th class="pb-2">{{ 'pteroca.servers.actions'|trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="placeholder-glow placeholder-wave">
+                            {% for server in servers %}
+                                {% include 'panel/servers/components/server-list.html.twig' %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="row">
+                <div class="col-md-12">
+                    {% include 'panel/servers/components/alert.html.twig' %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if widgetRegistry is defined %}
+            {% include '_partials/widget_area.html.twig' with {
+                'position': constant('App\\Core\\Enum\\WidgetPosition::BOTTOM'),
+                'widgetContext': widgetContext,
+                'widgetRegistry': widgetRegistry,
+                'contextData': contextData
+            } %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewCardsBtn = document.getElementById('view-cards');
+            const viewListBtn = document.getElementById('view-list');
+            const cardsView = document.getElementById('cards-view');
+            const listView = document.getElementById('list-view');
+
+            const savedView = localStorage.getItem('servers-view') || 'cards';
+            if (savedView === 'list') {
+                switchToListView();
+            }
+
+            viewCardsBtn.addEventListener('click', function() {
+                switchToCardsView();
+                localStorage.setItem('servers-view', 'cards');
+            });
+
+            viewListBtn.addEventListener('click', function() {
+                switchToListView();
+                localStorage.setItem('servers-view', 'list');
+            });
+
+            function switchToCardsView() {
+                viewCardsBtn.classList.add('active');
+                viewListBtn.classList.remove('active');
+                cardsView.style.display = 'block';
+                listView.style.display = 'none';
+            }
+
+            function switchToListView() {
+                viewListBtn.classList.add('active');
+                viewCardsBtn.classList.remove('active');
+                cardsView.style.display = 'none';
+                listView.style.display = 'block';
+            }
+
+            const serverIds = new Set();
+            document.querySelectorAll('[data-server-id]').forEach(element => {
+                serverIds.add(element.getAttribute('data-server-id'));
+            });
+
+            serverIds.forEach(serverId => {
+                const endpointUrl = '{{ path('panel') }}/api/server/' + serverId + '/details';
+
+                fetch(endpointUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server details unavailable');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const serverElements = document.querySelectorAll(`[data-server-id="${serverId}"]`);
+                        serverElements.forEach(element => {
+                            updateServerElements(element, data);
+                            clearRemainingPlaceholders(element);
+                        });
+                        document.querySelectorAll('.placeholder-glow').forEach(el => el.classList.remove('placeholder-glow'));
+                        document.querySelectorAll('.placeholder-wave').forEach(el => el.classList.remove('placeholder-wave'));
+                    })
+                    .catch(error => {
+                        console.error('Error fetching server details:', error);
+                        const serverElements = document.querySelectorAll(`[data-server-id="${serverId}"]`);
+                        serverElements.forEach(element => {
+                            updateServerElements(element, { state: 'unknown' });
+                            clearRemainingPlaceholders(element);
+                        });
+                        document.querySelectorAll('.placeholder-glow').forEach(el => el.classList.remove('placeholder-glow'));
+                        document.querySelectorAll('.placeholder-wave').forEach(el => el.classList.remove('placeholder-wave'));
+                    });
+            });
+
+            function updateServerElements(element, data, prefix = '') {
+                for (const [key, value] of Object.entries(data)) {
+                    let dataKey = prefix ? `${prefix}-${key}` : key;
+                    dataKey = dataKey
+                        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+                        .replaceAll(' ', '-')
+                        .replaceAll('.', '-')
+                        .toLowerCase();
+                    if (typeof value === 'object' && value !== null) {
+                        updateServerElements(element, value, dataKey);
+                    } else {
+                        const targetElement = element.querySelector(`[data-${dataKey}]`);
+                        if (targetElement) {
+                            if (dataKey === 'state') {
+                                updateServerStateBadge(targetElement, value);
+                            } else if (dataKey === 'password') {
+                                const secret = value === null || value === undefined ? '' : String(value);
+                                targetElement.dataset.secret = secret;
+                                targetElement.dataset.revealed = 'false';
+                                targetElement.textContent = secret ? '********' : '-';
+                                const passwordToggle = element.querySelector('[data-password-toggle]');
+                                if (passwordToggle && secret) {
+                                    passwordToggle.classList.remove('d-none');
+                                }
+                            } else if (dataKey === 'operating-system') {
+                                targetElement.textContent = formatOperatingSystem(value);
+                            } else if (targetElement.hasAttribute('data-unit')) {
+                                let displayValue = value;
+
+                                if (dataKey === 'limits-memory' || dataKey === 'limits-disk') {
+                                    const numericValue = parseFloat(value);
+                                    if (!Number.isNaN(numericValue)) {
+                                        displayValue = Math.ceil(numericValue * 1.048576 / 100) * 100;
+                                    }
+                                }
+
+                                targetElement.textContent = `${displayValue} ${targetElement.getAttribute('data-unit')}`;
+                            } else {
+                                targetElement.textContent = value === null || value === '' ? '-' : value;
+                            }
+                            targetElement.classList.remove('placeholder');
+                        }
+                    }
+                }
+            }
+
+            function clearRemainingPlaceholders(element) {
+                element.querySelectorAll('.placeholder').forEach(el => {
+                    el.textContent = '-';
+                    el.classList.remove('placeholder');
+                });
+            }
+
+            function formatOperatingSystem(value) {
+                const operatingSystem = String(value || '').trim();
+                const labels = {
+                    'ubuntu-22.04': 'Ubuntu 22.04 LTS',
+                    'ubuntu-24.04': 'Ubuntu 24.04 LTS',
+                    'debian-12': 'Debian 12',
+                    'rocky-linux-9': 'Rocky Linux 9',
+                    'windows-server-2022': 'Windows Server 2022',
+                };
+
+                return labels[operatingSystem.toLowerCase()] || operatingSystem || '-';
+            }
+
+            document.addEventListener('click', function(event) {
+                const button = event.target.closest('[data-password-toggle]');
+                if (!button) {
+                    return;
+                }
+
+                const serverElement = button.closest('[data-server-id]');
+                const passwordElement = serverElement?.querySelector('[data-password]');
+                if (!passwordElement?.dataset.secret) {
+                    return;
+                }
+
+                const revealPassword = passwordElement.dataset.revealed !== 'true';
+                passwordElement.dataset.revealed = String(revealPassword);
+                passwordElement.textContent = revealPassword ? passwordElement.dataset.secret : '********';
+                button.setAttribute('aria-pressed', String(revealPassword));
+                button.setAttribute('aria-label', revealPassword ? '隐藏密码' : '显示密码');
+                button.setAttribute('title', revealPassword ? '隐藏密码' : '显示密码');
+                button.querySelector('i').className = revealPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            });
+
+            document.addEventListener('submit', function(event) {
+                const form = event.target.closest('[data-server-delete-form]');
+                if (!form) {
+                    return;
+                }
+
+                if (!window.confirm(form.dataset.confirm)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                }
+            });
+
+            function updateServerStateBadge(element, state) {
+                const stateConfig = {
+                    'running':  { class: 'badge-success',   text: '{{ 'pteroca.servers.state.running'|trans }}' },
+                    'stopped':  { class: 'badge-secondary', text: '{{ 'pteroca.servers.state.stopped'|trans }}' },
+                    'starting': { class: 'badge-warning',   text: '{{ 'pteroca.servers.state.starting'|trans }}' },
+                    'stopping': { class: 'badge-warning',   text: '{{ 'pteroca.servers.state.stopping'|trans }}' },
+                    'offline':  { class: 'badge-danger',    text: '{{ 'pteroca.servers.state.offline'|trans }}' },
+                    'unknown':  { class: 'badge-secondary', text: '{{ 'pteroca.servers.state.unknown'|trans }}' },
+                };
+
+                const config = stateConfig[state] || { class: 'badge-secondary', text: '{{ 'pteroca.servers.state.unknown'|trans }}' };
+
+                element.className = `badge ${config.class}`;
+                element.textContent = config.text;
+            }
+        });
+    </script>
+{% endblock %}

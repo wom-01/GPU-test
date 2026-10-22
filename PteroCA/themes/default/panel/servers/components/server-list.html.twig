@@ -1,0 +1,64 @@
+{% set serverDisplayName = server.name ?: (server.serverProduct ? server.serverProduct.name : 'Server') %}
+{% set canDeleteServer = server.user.id == app.user.id
+    and (server.isSuspended or server.expiresAt|date('U') <= 'now'|date('U')) %}
+
+<tr data-server-id="{{ server.id }}">
+    <td>
+        <span class="badge placeholder" data-state></span>
+    </td>
+    <td>
+        <strong>{{ serverDisplayName }} #{{ server.pterodactylServerIdentifier }}</strong>
+    </td>
+    <td>
+        <span class="placeholder col-8 rounded-1" data-ip></span>
+    </td>
+    <td>
+        <span class="placeholder col-8 rounded-1 font-monospace" data-username></span>
+    </td>
+    <td>
+        <span class="placeholder col-8 rounded-1 font-monospace" data-password></span>
+        <button class="btn btn-sm btn-link text-muted p-0 ms-1 d-none" type="button" data-password-toggle
+                title="显示密码" aria-label="显示密码" aria-pressed="false">
+            <i class="fas fa-eye"></i>
+        </button>
+    </td>
+    <td>
+        <span class="placeholder col-8 rounded-1" data-operating-system></span>
+    </td>
+    <td>
+        {{ server.expiresAt|app_date }}
+    </td>
+    <td>
+        <div class="d-inline-flex align-items-center gap-1">
+            <div class="btn-group" role="group">
+                {% if not server.isSuspended %}
+                    <a href="{% if not use_pterodactyl_panel_as_client_panel() %}{{ path('panel', { routeName: 'server', id: server.pterodactylServerIdentifier }) }}{% else %}{{ get_pterodactyl_panel_url('/server/' ~ server.pterodactylServerIdentifier) }}{% endif %}"
+                       class="btn primary btn-sm p-3"
+                       target="{% if use_pterodactyl_panel_as_client_panel() %}_blank{% else %}_self{% endif %}"
+                       title="{{ 'pteroca.servers.manage_server'|trans }}">
+                        <i class="fas fa-cogs fa-xs"></i>
+                    </a>
+                {% endif %}
+                <a href="{{ path('panel', { routeName: 'cart_renew', id: server.id }) }}"
+                   class="btn primary btn-sm p-3"
+                   title="{{ 'pteroca.servers.extend'|trans }}">
+                    <i class="fas fa-sync fa-xs"></i>
+                </a>
+            </div>
+            {% if canDeleteServer %}
+                <form method="post" action="{{ path('panel_server_delete', { id: server.id }) }}"
+                      class="d-inline" data-server-delete-form
+                      data-confirm="{{ 'pteroca.servers.delete_confirmation'|trans({
+                          '%name%': serverDisplayName ~ ' #' ~ server.pterodactylServerIdentifier
+                      }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('server_delete_' ~ server.id) }}">
+                    <button type="submit" class="btn btn-danger btn-sm p-3"
+                            title="{{ 'pteroca.servers.delete'|trans }}"
+                            aria-label="{{ 'pteroca.servers.delete'|trans }}">
+                        <i class="fas fa-trash-alt fa-xs"></i>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </td>
+</tr>

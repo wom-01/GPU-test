@@ -1,0 +1,279 @@
+parameters:
+  version: '0.6.5'
+  categories_base_path: '/uploads/categories'
+  categories_directory: 'public/uploads/categories'
+  products_base_path: '/uploads/products'
+  products_directory: 'public/uploads/products'
+  avatar_base_path: '/uploads/avatars'
+  avatar_directory: 'public/uploads/avatars'
+  avatar_max_size: '2M'
+  avatar_allowed_extensions: ['image/jpeg', 'image/png']
+  default_logo_path: '%kernel.project_dir%/public/assets/img/logo/logo.png'
+
+  # Plugin upload settings
+  plugin_upload.max_file_size: 52428800        # 50 MB
+  plugin_upload.max_extracted_size: 104857600  # 100 MB
+  plugin_upload.temp_directory: '%kernel.project_dir%/var/tmp/plugin-uploads'
+  plugin_upload.enable_pre_scan: true          # Security scan before upload
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  # Aliases for dependency injection
+  Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+  Doctrine\ORM\EntityManagerInterface: '@doctrine.orm.entity_manager'
+
+  App\Core\:
+    resource: '../../*'
+    exclude: '../../{DependencyInjection,DTO,Entity,Event,Exception,Migrations,Tests,Kernel.php,Adapter/Pterodactyl}'
+    tags: ['controller.service_arguments']
+
+  App\Core\Service\StoreService:
+    arguments:
+      $categoriesBasePath: '%categories_base_path%'
+      $productsBasePath: '%products_base_path%'
+
+  App\Core\Service\Crud\ProductCopyService:
+    arguments:
+      $productsDirectory: '%products_directory%'
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\Mailer\MailerService:
+    arguments:
+      $twig: '@twig'
+      $defaultLogoPath: '%default_logo_path%'
+      $projectDir: '%kernel.project_dir%'
+      $appEnv: '%kernel.environment%'
+
+  App\Core\Twig\AppExtension:
+    tags: [ 'twig.extension' ]
+
+  App\Core\Service\System\SystemInformationService:
+    arguments:
+      $entityManager: '@doctrine.orm.entity_manager'
+
+  App\Core\Service\System\SystemVersionService:
+    arguments:
+      $currentVersion: '%version%'
+
+  App\Core\Service\Crud\CrudTemplateService:
+    arguments:
+      $projectDirectory: '%kernel.project_dir%'
+      $environment: '%kernel.environment%'
+
+  App\Core\Contract\Pterodactyl\Application\PterodactylAdapterInterface:
+    alias: App\Core\Adapter\Pterodactyl\Application\PterodactylAdapter
+
+  App\Core\Contract\Pterodactyl\Client\PterodactylClientAdapterInterface:
+    alias: App\Core\Adapter\Pterodactyl\Client\PterodactylClientAdapter
+
+  App\Core\Adapter\Pterodactyl\Application\PterodactylAdapter:
+    autowire: true
+
+  App\Core\Adapter\Pterodactyl\Client\PterodactylClientAdapter:
+    autowire: true
+
+  App\Core\Contract\Pterodactyl\Client\PterodactylAccountInterface:
+    alias: App\Core\Adapter\Pterodactyl\Client\PterodactylAccount
+
+  App\Core\Contract\Pterodactyl\Client\PterodactylServersInterface:
+    alias: App\Core\Adapter\Pterodactyl\Client\PterodactylServers
+
+  # Widget Registry (Universal)
+  App\Core\Service\Widget\WidgetRegistry:
+    public: true
+
+  # Dashboard Widget Registry (Legacy - for backward compatibility)
+  App\Core\Service\Widget\DashboardWidgetRegistry:
+    public: true
+
+  # Auto-register builtin dashboard widgets as services
+  App\Core\Widget\Dashboard\:
+    resource: '../../Widget/Dashboard/*Widget.php'
+    tags: ['dashboard.widget']
+    autowire: true
+    autoconfigure: true
+
+  # Auto-register builtin admin widgets as services
+  App\Core\Widget\Admin\:
+    resource: '../../Widget/Admin/*Widget.php'
+    tags: ['admin.widget']
+    autowire: true
+    autoconfigure: true
+
+  # Auto-register builtin header widgets as services (navbar widgets)
+  App\Core\Widget\Header\:
+    resource: '../../Widget/Header/*Widget.php'
+    tags: ['header.widget']
+    autowire: true
+    autoconfigure: true
+
+  # Payment Gateway Manager
+  App\Core\Service\Payment\PaymentGatewayManager:
+    arguments:
+      $providers: !tagged_iterator payment.provider
+
+  # Auto-register payment providers as tagged services
+  App\Core\Provider\Payment\:
+    resource: '../../Provider/Payment/*Provider.php'
+    tags: ['payment.provider']
+    autowire: true
+    autoconfigure: true
+
+  # Server Tab Registry
+  App\Core\Service\Tab\ServerTabRegistry:
+    arguments:
+      $tabs: !tagged_iterator server.tab
+
+  # Auto-register builtin server tabs as tagged services
+  App\Core\Tab\Server\:
+    resource: '../../Tab/Server/*Tab.php'
+    tags: ['server.tab']
+    autowire: true
+    autoconfigure: true
+
+  # Plugin System Services
+  App\Core\Service\Plugin\ManifestParser:
+    autowire: true
+
+  App\Core\Service\Plugin\ManifestValidator:
+    arguments:
+      $pterocaVersion: '%version%'
+
+  App\Core\Service\Plugin\PluginScanner:
+    arguments:
+      $pluginsDirectory: '%kernel.project_dir%/plugins'
+
+  App\Core\Service\Plugin\PluginStateMachine:
+    autowire: true
+
+  App\Core\Service\Plugin\PluginAutoloader:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\Plugin\PluginLoader:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\Plugin\PluginMigrationService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\Plugin\PluginManager:
+    autowire: true
+    public: true
+
+  App\Core\Service\Plugin\PluginAssetManager:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+      $publicDir: '%kernel.project_dir%/public'
+
+  App\Core\Service\Plugin\PluginEventSubscriberRegistry:
+    autowire: true
+    public: true
+
+  App\Core\Service\Plugin\PluginCommandRegistry:
+    autowire: true
+    public: true
+
+  App\Core\Service\Plugin\PluginCronRegistry:
+    autowire: true
+    public: true
+
+  App\Core\Service\Plugin\PluginSettingService:
+    autowire: true
+    public: true
+
+  App\Core\Service\Plugin\PluginUploadService:
+    arguments:
+      $pluginsDirectory: '%kernel.project_dir%/plugins'
+      $tempDirectory: '%plugin_upload.temp_directory%'
+      $enablePreScan: '%plugin_upload.enable_pre_scan%'
+
+  App\Core\Service\Plugin\PluginFilesystemCheckService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+      $pluginsDirectory: '%kernel.project_dir%/plugins'
+      $tempDirectory: '%plugin_upload.temp_directory%'
+
+  App\Core\Service\Plugin\EnabledPluginsCacheManager:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\CronScheduler:
+    autowire: true
+    public: true
+
+  # Plugin Route Loader
+  App\Core\Routing\PluginRouteLoader:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+      $annotationLoader: '@routing.loader.attribute'
+    tags:
+      - { name: routing.loader }
+
+  # Composer Binary Resolver
+  App\Core\Service\Composer\ComposerBinaryResolverService:
+    arguments:
+      $composerBinaryEnv: '%env(default::COMPOSER_BINARY)%'
+
+  # Composer Dependency Manager
+  App\Core\Service\Plugin\ComposerDependencyManager:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  # Plugin Boot Subscriber (registers autoloaders and Twig namespaces for enabled plugins)
+  App\Core\EventSubscriber\Plugin\PluginBootSubscriber:
+    arguments:
+      $twigLoader: '@twig.loader.native_filesystem'
+      $projectDir: '%kernel.project_dir%'
+    tags:
+      - { name: kernel.event_subscriber }
+
+  # Security Voters
+  # PermissionVoter has higher priority to ensure database-based permissions take precedence
+  App\Core\Security\PermissionVoter:
+    tags:
+      - { name: security.voter, priority: 100 }
+
+  App\Core\Security\PluginPermissionVoter:
+    tags:
+      - { name: security.voter, priority: 50 }
+
+  # Twig context-aware template loading
+  App\Core\EventSubscriber\TwigContextSubscriber:
+    arguments:
+      $templatesBaseDir: '%kernel.project_dir%/themes'
+
+  # Theme System Services
+  App\Core\Service\Theme\ThemeDeleteService:
+    arguments:
+      $themesDirectory: '%kernel.project_dir%/themes'
+      $publicAssetsDirectory: '%kernel.project_dir%/public/assets/theme'
+
+  App\Core\Service\Theme\ThemeUploadService:
+    arguments:
+      $themesDirectory: '%kernel.project_dir%/themes'
+      $publicAssetsDirectory: '%kernel.project_dir%/public/assets/theme'
+      $tempDirectory: '%kernel.project_dir%/var/tmp'
+      $currentPterocaVersion: '%version%'
+
+  App\Core\Service\Theme\ThemeFilesystemCheckService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+      $themesDirectory: '%kernel.project_dir%/themes'
+      $tempDirectory: '%kernel.project_dir%/var/tmp'
+
+  App\Core\Service\Theme\TemplateManifestValidator:
+    arguments:
+      $currentPterocaVersion: '%version%'
+
+  App\Core\Service\Template\ThemeCopyService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'
+
+  App\Core\Service\Template\ThemeExportService:
+    arguments:
+      $projectDir: '%kernel.project_dir%'

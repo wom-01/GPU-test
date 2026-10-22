@@ -1,0 +1,401 @@
+<?php
+
+namespace App\Core\Controller\Panel;
+
+use App\Core\Service\Identity\AliyunRealNameService;
+use App\Core\Controller\Panel\Setting\EmailSettingCrudController;
+use App\Core\Controller\Panel\Setting\GeneralSettingCrudController;
+use App\Core\Controller\Panel\Setting\PterodactylSettingCrudController;
+use App\Core\Controller\Panel\Setting\SecuritySettingCrudController;
+use App\Core\Controller\Panel\Setting\ThemeSettingCrudController;
+use App\Core\Entity\Panel\UserAccount;
+use App\Core\Service\Menu\MenuBuilder;
+use App\Core\Service\Pterodactyl\PterodactylAccountService;
+use App\Core\Enum\PermissionEnum;
+use App\Core\Enum\SettingContextEnum;
+use App\Core\Enum\SettingEnum;
+use App\Core\Enum\ViewNameEnum;
+use App\Core\Enum\WidgetContext;
+use App\Core\Event\Dashboard\DashboardAccessedEvent;
+use App\Core\Event\Dashboard\DashboardDataLoadedEvent;
+use App\Core\Event\Menu\MenuItemsCollectedEvent;
+use App\Core\Event\Widget\WidgetsCollectedEvent;
+use App\Core\Service\Widget\WidgetRegistry;
+use App\Core\Widget\Dashboard\BalanceWidget;
+use App\Core\Widget\Dashboard\ServersWidget;
+use App\Core\Widget\Dashboard\MotdWidget;
+use App\Core\Widget\Dashboard\ActivityWidget;
+use App\Core\Widget\Dashboard\QuickActionsWidget;
+use App\Core\Repository\ServerRepository;
+use App\Core\Service\Logs\LogService;
+use App\Core\Service\Server\ServerService;
+use App\Core\Service\SettingService;
+use App\Core\Service\System\SystemVersionService;
+use App\Core\Service\Template\TemplateManager;
+use App\Core\Trait\EventContextTrait;
+use App\Core\Trait\GetUserTrait;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\ColorScheme;
+use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
+use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+class DashboardController extends AbstractDashboardController
+{
+    use GetUserTrait;
+    use EventContextTrait;
+
+    private const PAYMENT_SETTINGS = [
+        SettingEnum::INTERNAL_CURRENCY_NAME,
+        SettingEnum::CURRENCY_NAME,
+        SettingEnum::MINIMUM_TOPUP_AMOUNT,
+        SettingEnum::EPAY_URL,
+        SettingEnum::EPAY_PID,
+        SettingEnum::EPAY_KEY,
+        SettingEnum::STRIPE_SECRET_KEY,
+        SettingEnum::STRIPE_PAYMENT_METHODS,
+    ];
+
+    private const IDENTITY_SETTINGS = [
+        SettingEnum::ALIYUN_CLOUDAUTH_ACCESS_KEY_ID,
+        SettingEnum::ALIYUN_CLOUDAUTH_ACCESS_KEY_SECRET,
+        SettingEnum::ALIYUN_CLOUDAUTH_SCENE_ID,
+    ];
+
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+        private readonly SettingService $settingService,
+        private readonly ServerRepository $serverRepository,
+        private readonly LogService $logService,
+        private readonly SystemVersionService $systemVersionService,
+        private readonly TemplateManager $templateManager,
+        private readonly ServerService $serverService,
+        private readonly RequestStack $requestStack,
+        private readonly BalanceWidget $balanceWidget,
+        private readonly ServersWidget $serversWidget,
+        private readonly MotdWidget $motdWidget,
+        private readonly ActivityWidget $activityWidget,
+        private readonly QuickActionsWidget $quickActionsWidget,
+        private readonly MenuBuilder $menuBuilder,
+        private readonly WidgetRegistry $widgetRegistry,
+        private readonly PterodactylAccountService $pterodactylAccountService,
+    ) {}
+
+    #[Route('/panel', name: 'panel')]
+    public function index(): Response
+    {
+        $this->denyAccessUnlessGranted(PermissionEnum::ACCESS_DASHBOARD->value);
+
+        $user = $this->getUser();
+        $request = $this->requestStack->getCurrentRequest();
+
+        $gpuStoreMode = !empty($_ENV['DGM_API_URL'] ?? getenv('DGM_API_URL'));
+        if (!$gpuStoreMode && !$this->pterodactylAccountService->isAccountSynchronized($user)) {
+            $this->addFlash('warning', $this->translator->trans('pteroca.system.pterodactyl_account_not_synchronized'));
+        }
+
+        $this->dispatchDataEvent(
+            DashboardAccessedEvent::class,
+            $request,
+            [$user->getRoles()]
+        );
+
+        // === Widget Registry System ===
+        // Register builtin widgets (injected as dependencies)
+        $this->registerBuiltinWidgets($this->widgetRegistry);
+
+        // Dispatch event for plugins to register custom widgets
+        $contextData = ['user' => $user];
+        $widgetEvent = new WidgetsCollectedEvent(
+            $this->widgetRegistry,
+            WidgetContext::DASHBOARD,
+            $contextData
+        );
+        $this->dispatchEvent($widgetEvent);
+        // === End Widget Registry System ===
+
+        $pterodactylPanelUrl = $this->settingService->getSetting(SettingEnum::PTERODACTYL_PANEL_URL->value);
+        $servers = $this->serverService->getServersWithAccess($user);
+        $logs = $this->logService->getLogsByUser($user, 5);
+        $motdEnabled = $this->settingService->getSetting(SettingEnum::CUSTOMER_MOTD_ENABLED->value);
+        $motdTitle = $this->settingService->getSetting(SettingEnum::CUSTOMER_MOTD_TITLE->value);
+        $motdMessage = $this->settingService->getSetting(SettingEnum::CUSTOMER_MOTD_MESSAGE->value);
+
+        $this->dispatchDataEvent(
+            DashboardDataLoadedEvent::class,
+            $request,
+            [count($servers), count($logs), (bool)$motdEnabled]
+        );
+
+        $viewData = [
+            'widgetRegistry' => $this->widgetRegistry,
+            'widgetContext' => WidgetContext::DASHBOARD,
+            'contextData' => $contextData,
+            'servers' => $servers,
+            'user' => $user,
+            'logs' => $logs,
+            'motdEnabled' => $motdEnabled,
+            'motdTitle' => $motdTitle,
+            'motdMessage' => $motdMessage,
+            'pterodactylPanelUrl' => $pterodactylPanelUrl,
+        ];
+
+        $viewEvent = $this->prepareViewDataEvent(ViewNameEnum::DASHBOARD, $viewData, $request);
+
+        return $this->render('panel/dashboard/dashboard.html.twig', $viewEvent->getViewData());
+    }
+
+    #[Route('/panel/payment-settings', name: 'admin_payment_settings', methods: ['GET', 'POST'])]
+    #[Route('/admin/payment-settings', name: 'admin_payment_settings_legacy', methods: ['GET', 'POST'])]
+    public function paymentSettings(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(PermissionEnum::ACCESS_SETTINGS_PAYMENT->value);
+
+        if ($request->isMethod('POST')) {
+            $this->denyAccessUnlessGranted(PermissionEnum::EDIT_SETTINGS_PAYMENT->value);
+
+            if (!$this->isCsrfTokenValid('payment_settings', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token.');
+            }
+
+            $minimumTopup = (float) $request->request->get(SettingEnum::MINIMUM_TOPUP_AMOUNT->value, 0);
+            if ($minimumTopup <= 0) {
+                $this->addFlash('danger', '最低充值金额必须大于 0。');
+            } else {
+                foreach (self::PAYMENT_SETTINGS as $setting) {
+                    $value = trim((string) $request->request->get($setting->value, ''));
+                    $isSecret = in_array($setting, [SettingEnum::EPAY_KEY, SettingEnum::STRIPE_SECRET_KEY], true);
+
+                    if ($isSecret && $value === '') {
+                        continue;
+                    }
+
+                    $this->settingService->saveSetting($setting->value, $value === '' ? null : $value);
+                }
+
+                $this->addFlash('success', '支付设置已保存。');
+
+                return $this->redirectToRoute('admin_payment_settings');
+            }
+        }
+
+        $settings = [];
+        foreach (self::PAYMENT_SETTINGS as $setting) {
+            $settings[$setting->value] = $this->settingService->getSetting($setting->value);
+        }
+
+        return $this->render('panel/admin/payment_settings.html.twig', [
+            'settings' => $settings,
+            'epayConfigured' => !empty($settings[SettingEnum::EPAY_KEY->value]),
+            'stripeConfigured' => !empty($settings[SettingEnum::STRIPE_SECRET_KEY->value]),
+        ]);
+    }
+
+    #[Route('/panel/identity-verification', name: 'identity_verification_page', methods: ['GET'])]
+    public function identityVerificationPage(AliyunRealNameService $service): Response
+    {
+        return $this->render('panel/account/identity_verification.html.twig', [
+            'verificationEnabled' => $service->isEnabled(),
+            'verificationConfigured' => $service->isConfigured(),
+            'user' => $this->getUser(),
+        ]);
+    }
+
+    #[Route('/panel/identity-settings', name: 'admin_identity_settings', methods: ['GET', 'POST'])]
+    public function identitySettings(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(PermissionEnum::ACCESS_SETTINGS_SECURITY->value);
+
+        if ($request->isMethod('POST')) {
+            $this->denyAccessUnlessGranted(PermissionEnum::EDIT_SETTINGS_SECURITY->value);
+
+            if (!$this->isCsrfTokenValid('identity_settings', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token.');
+            }
+
+            $values = [];
+            foreach (self::IDENTITY_SETTINGS as $setting) {
+                $submitted = trim((string) $request->request->get($setting->value, ''));
+                $values[$setting->value] = $submitted !== ''
+                    ? $submitted
+                    : $this->settingService->getSetting($setting->value);
+            }
+
+            $enabled = $request->request->getBoolean(SettingEnum::ALIYUN_REAL_NAME_ENABLED->value);
+            if ($enabled && in_array(null, $values, true)) {
+                $this->addFlash('danger', '请先完整填写 AccessKey ID、AccessKey Secret 和 SceneId，再启用实名认证。');
+            } else {
+                foreach (self::IDENTITY_SETTINGS as $setting) {
+                    $submitted = trim((string) $request->request->get($setting->value, ''));
+                    if ($submitted !== '') {
+                        $this->settingService->saveSetting($setting->value, $submitted);
+                    }
+                }
+                $this->settingService->saveSetting(
+                    SettingEnum::ALIYUN_REAL_NAME_ENABLED->value,
+                    $enabled ? '1' : '0'
+                );
+                $this->addFlash('success', '实名认证设置已保存。');
+                return $this->redirectToRoute('admin_identity_settings');
+            }
+        }
+
+        $settings = [];
+        foreach (self::IDENTITY_SETTINGS as $setting) {
+            $settings[$setting->value] = $this->settingService->getSetting($setting->value);
+        }
+
+        return $this->render('panel/admin/identity_settings.html.twig', [
+            'settings' => $settings,
+            'enabled' => $this->settingService->getSetting(SettingEnum::ALIYUN_REAL_NAME_ENABLED->value) === '1',
+            'accessKeyIdConfigured' => !empty($settings[SettingEnum::ALIYUN_CLOUDAUTH_ACCESS_KEY_ID->value]),
+            'accessKeySecretConfigured' => !empty($settings[SettingEnum::ALIYUN_CLOUDAUTH_ACCESS_KEY_SECRET->value]),
+        ]);
+    }
+
+    /**
+     * Register builtin (core) dashboard widgets.
+     *
+     * @param WidgetRegistry $registry
+     * @return void
+     */
+    private function registerBuiltinWidgets(WidgetRegistry $registry): void
+    {
+        $registry->registerWidget($this->quickActionsWidget);
+        $registry->registerWidget($this->balanceWidget);
+        $registry->registerWidget($this->serversWidget);
+        $registry->registerWidget($this->motdWidget);
+        $registry->registerWidget($this->activityWidget);
+    }
+
+    public function configureDashboard(): Dashboard
+    {
+        $title = $this->settingService->getSetting(SettingEnum::SITE_TITLE->value);
+        $logoUrl = $this->settingService->getSetting(SettingEnum::LOGO->value);
+        if (!empty($logoUrl)) {
+            $logoUrl = sprintf('/uploads/settings/%s', $logoUrl);
+        } else {
+            $logoUrl = '/assets/img/logo/logo.png';
+        }
+        $logo = sprintf('<img src="%s" alt="%s" style="max-width: 90%%;">', $logoUrl, $title);
+
+        $currentTemplateOptions = $this->templateManager->getCurrentTemplateOptions();
+        $disableDarkMode = !$currentTemplateOptions->isSupportDarkMode()
+            || $this->settingService->getSetting(SettingEnum::THEME_DISABLE_DARK_MODE->value);
+        $defaultMode = $disableDarkMode
+            ? ColorScheme::LIGHT
+            : $this->getValidColorScheme();
+
+        return Dashboard::new()
+            ->setTitle($logo)
+            ->setDefaultColorScheme($defaultMode)
+            ->disableDarkMode($disableDarkMode)
+            ;
+    }
+
+    public function configureMenuItems(): iterable
+    {
+        // Build menu structure using MenuBuilder service
+        $menuItems = $this->menuBuilder->buildMenuStructure(
+            fn(SettingContextEnum $context) => $this->generateSettingsUrl($context)
+        );
+
+        // Add conditional footer items (phpMyAdmin, if enabled)
+        if ($this->settingService->getSetting(SettingEnum::SHOW_PHPMYADMIN_URL->value)) {
+            $menuItems['footer'][] = MenuItem::linkToUrl(
+                $this->translator->trans('pteroca.crud.menu.phpmyadmin'),
+                'fa fa-database',
+                $this->settingService->getSetting(SettingEnum::PHPMYADMIN_URL->value),
+            )->setLinkTarget('_blank');
+        }
+
+        $menuItems['footer'][] = MenuItem::linkToLogout(
+            $this->translator->trans('pteroca.crud.menu.logout'),
+            'fa fa-sign-out-alt'
+        );
+
+        // Dispatch event for plugins to add/modify menu items
+        $request = $this->requestStack->getCurrentRequest();
+        $context = $request ? $this->buildMinimalEventContext($request) : [];
+
+        $event = new MenuItemsCollectedEvent(
+            $this->getUser(),
+            $menuItems,
+            $context
+        );
+
+        $event = $this->dispatchEvent($event);
+        $menuItems = $event->getMenuItems();
+
+        // Yield all items in order: main -> admin -> footer
+        foreach ($menuItems as $items) {
+            foreach ($items as $item) {
+                yield $item;
+            }
+        }
+    }
+
+    public function configureAssets(): Assets
+    {
+        return Assets::new()
+            ->addCssFile(sprintf(
+                '/assets/theme/%s/css/panel.css?v=%s',
+                $this->templateManager->getCurrentTemplate(),
+                $this->systemVersionService->getCurrentVersion(),
+            ));
+    }
+
+    public function configureUserMenu(UserInterface $user): UserMenu
+    {
+        $userMenu = parent::configureUserMenu($user);
+        $menuItems = $userMenu->getAsDto()->getItems();
+
+        $logoutAction = end($menuItems);
+        $logoutAction->setIcon('fa-sign-out-alt');
+
+        $userMenu->addMenuItems([
+            MenuItem::linkToCrud(
+                $this->translator->trans('pteroca.dashboard.account_settings'),
+                'fa fa-user-cog',
+                UserAccount::class
+            ),
+        ]);
+
+        return $userMenu;
+    }
+
+    private function generateSettingsUrl(SettingContextEnum $context): string
+    {
+        if ($context === SettingContextEnum::PAYMENT) {
+            return $this->generateUrl('admin_payment_settings');
+        }
+
+        $crudFqcn = match ($context) {
+            SettingContextEnum::THEME => ThemeSettingCrudController::class,
+            SettingContextEnum::SECURITY => SecuritySettingCrudController::class,
+            SettingContextEnum::EMAIL => EmailSettingCrudController::class,
+            SettingContextEnum::PTERODACTYL => PterodactylSettingCrudController::class,
+            default => GeneralSettingCrudController::class,
+        };
+
+        return $this->generateUrl('panel', [
+            'crudAction' => 'index',
+            'crudControllerFqcn' => $crudFqcn,
+        ]);
+    }
+
+    private function getValidColorScheme(): string
+    {
+        $storedMode = strtolower(trim((string) $this->settingService->getSetting(SettingEnum::THEME_DEFAULT_MODE->value)));
+        $validModes = [ColorScheme::LIGHT, ColorScheme::DARK, ColorScheme::AUTO];
+
+        return in_array($storedMode, $validModes, true) ? $storedMode : ColorScheme::LIGHT;
+    }
+}
