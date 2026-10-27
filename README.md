@@ -72,7 +72,7 @@ mac = Hmac-SM3(key=MAC_KEY, msg=签名串) 的 hex 小写
 
 所有配置支持环境变量覆盖（见 `app/config.py`）：
 `THIRD_OS_ID` / `AUTH_USERNAME` / `AUTH_PASSWORD` / `AES_KEY`（16/24/32字节）/
-`MAC_KEY` / `TOKEN_TTL_SECONDS` / `AUTH_MODE`（all|token|aes|mac）等。
+`JWT_SECRET`（令牌签名密钥，缺省沿用 AES_KEY）/ `MAC_KEY` / `TOKEN_TTL_SECONDS` / `AUTH_MODE`（all|token|aes|mac）等。
 
 ## 业务规则实现对照
 

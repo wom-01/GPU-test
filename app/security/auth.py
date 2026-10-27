@@ -46,7 +46,7 @@ def _check_and_cache_nonce(nonce: str) -> bool:
 def _auth_token(header_value: str) -> str:
     token = header_value[len("Bearer "):].strip()
     try:
-        jwt_hs256.verify(config.AES_KEY[:32], token)  # 用 AES_KEY 前 32 字节作 JWT 签名密钥
+        jwt_hs256.verify(config.JWT_SECRET[:32], token)  # JWT 签名密钥（独立于 AES_KEY）
     except jwt_hs256.JwtError as exc:
         raise AuthError(f"令牌校验失败：{exc}")
     except Exception as exc:  # 畸形 token（base64/编码坏掉等）一律按认证失败处理

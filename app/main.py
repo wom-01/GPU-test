@@ -21,7 +21,7 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 app = FastAPI(
     title="界云算力 · 算力并网三方系统接口",
-    description="第三方在线并网对接（v3.0 第11章接口要求）演示实现。"
+    description="第三方在线并网对接（v3.0 第11章接口要求）。"
                 "认证：令牌 / AES 密钥 / Hmac-SM3 三选一。",
     version="0.6.0",
     docs_url=None,   # 使用下方自定义文档页（本地静态资源 + 中文布局）
@@ -39,18 +39,18 @@ _DEMO_HOST = {"hostIp": "203.0.113.11", "hostRoomName": "示例算力机房"}
 REQUEST_EXAMPLES = {
     "/api/v1/authentication/token": {"username": "<AUTH_USERNAME>", "password": "<AUTH_PASSWORD>"},
     "/api/v1/compute/resource/host/collect": {"scaleNum": 10, "specification": {}},
-    "/api/v1/compute/resource/reserve/notify": {"reserveId": "RS-DEMO-0001", "hosts": [_DEMO_HOST]},
-    "/api/v1/compute/resource/reserve/release": {"reserveId": "RS-DEMO-0001", "description": "客户取消"},
+    "/api/v1/compute/resource/reserve/notify": {"reserveId": "RS202610260001", "hosts": [_DEMO_HOST]},
+    "/api/v1/compute/resource/reserve/release": {"reserveId": "RS202610260001", "description": "客户取消"},
     "/api/v1/compute/resource/host/open": {
-        "openId": "OP-DEMO-0001", "reserveId": "RS-DEMO-0001", "userId": "9900030001",
+        "openId": "OP202610260001", "reserveId": "RS202610260001", "userId": "9900030001",
         "orderStartTime": "2026-10-20 10:00:00", "hosts": [_DEMO_HOST]},
-    "/api/v1/compute/resource/host/open/query": {"openId": "OP-DEMO-0001"},
+    "/api/v1/compute/resource/host/open/query": {"openId": "OP202610260001"},
     "/api/v1/compute/resource/host/monitor/collect": {"hosts": [_DEMO_HOST]},
-    "/api/v1/compute/resource/host/order/update": {"openId": "OP-DEMO-0001", "orderType": "104"},
+    "/api/v1/compute/resource/host/order/update": {"openId": "OP202610260001", "orderType": "104"},
     "/api/v1/compute/resource/batch/reserve/notify": {"hosts": [
-        {"reserveId": "RS-DEMO-0002", "hostIp": "203.0.113.12", "hostRoomName": "示例算力机房"},
-        {"reserveId": "RS-DEMO-0003", "hostIp": "203.0.113.13", "hostRoomName": "示例算力机房"}]},
-    "/api/v1/compute/resource/batch/reserve/release": {"reserveIds": "RS-DEMO-0002,RS-DEMO-0003"},
+        {"reserveId": "RS202610260002", "hostIp": "203.0.113.12", "hostRoomName": "示例算力机房"},
+        {"reserveId": "RS202610260003", "hostIp": "203.0.113.13", "hostRoomName": "示例算力机房"}]},
+    "/api/v1/compute/resource/batch/reserve/release": {"reserveIds": "RS202610260002,RS202610260003"},
 }
 
 

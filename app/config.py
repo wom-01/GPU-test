@@ -37,6 +37,8 @@ TOKEN_TTL_SECONDS = int(_env("TOKEN_TTL_SECONDS", "7200"))
 # 双方约定的 AES 密钥，须为 16/24/32 字节（对应 AES-128/192/256）。
 # 同时用于：Authorization 密文解密、开通结果中敏感字段的加解密。
 AES_KEY = _env("AES_KEY", "").encode()
+# Bearer 令牌（JWT HS256）签名密钥，与 AES_KEY 独立；未配置时沿用 AES_KEY
+JWT_SECRET = _env("JWT_SECRET", AES_KEY.decode()).encode()
 
 # 密文中的时间戳允许偏移（秒），超出视为重放
 TIMESTAMP_WINDOW_SECONDS = int(_env("TIMESTAMP_WINDOW_SECONDS", "300"))

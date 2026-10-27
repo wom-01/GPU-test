@@ -57,7 +57,7 @@ def _clear_failures(ip: str) -> None:
 
 @router.post("/api/v1/authentication/token",
              tags=["① 认证 · 第一步先调我"],
-             summary="获取 accessToken（默认 2 小时，可传 validHours 最长 1 年）")
+             summary="获取 accessToken（长期有效）")
 def issue_token(req: TokenRequest, request: Request):
     ip = _client_ip(request)
     wait = _retry_after(ip)
@@ -70,7 +70,7 @@ def issue_token(req: TokenRequest, request: Request):
     _clear_failures(ip)                       # 成功即清零，恢复正常使用
 
     ttl = config.TOKEN_TTL_SECONDS if req.validHours is None else int(req.validHours * 3600)
-    token = jwt_hs256.issue(secret=config.AES_KEY[:32],
+    token = jwt_hs256.issue(secret=config.JWT_SECRET[:32],
                             subject=config.THIRD_OS_ID,
                             ttl_seconds=ttl,
                             extra_claims={"user": {"username": req.username}})

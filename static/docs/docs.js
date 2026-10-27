@@ -1,11 +1,10 @@
 /* 聚算并网 · 接口中心 —— 页面交互
- * 配置由服务端注入 #docs-cfg（JSON）：{mode: "demo"|"dgm", demoUser?, demoPass?}
+ * 配置由服务端注入 #docs-cfg（JSON）
  */
 (function () {
   'use strict';
 
   const CFG = JSON.parse(document.getElementById('docs-cfg').textContent || '{}');
-  const IS_DEMO = CFG.mode === 'demo';
   const API = location.origin + '/api/v1';
   const TOKEN_KEY = 'jusuan_docs_token';
   const $ = (id) => document.getElementById(id);
@@ -99,8 +98,7 @@
   function renderToken() {
     const on = !!token;
     $('tokenBox').hidden = !on;
-    $('authForm').hidden = on || IS_DEMO;
-    $('authDemo').hidden = on || !IS_DEMO;
+    $('authForm').hidden = on;
     const pill = $('tokenPill');
     pill.classList.toggle('on', on);
     if (on) {
@@ -156,7 +154,7 @@
           btn.textContent = label;
           $('authErr').hidden = true;
         }, 1000);
-        $('authErr').textContent = '口令错误次数过多，' + e.retryAfter + ' 秒后可重试（演示环境请直接点一键按钮）';
+        $('authErr').textContent = '口令错误次数过多，' + e.retryAfter + ' 秒后可重试';
       } else {
         $('authErr').textContent = e.message;
       }
@@ -168,7 +166,7 @@
   }
 
   function renderTtlChips() {
-    ['ttlChips', 'ttlChipsDemo'].forEach((id) => {
+    ['ttlChips'].forEach((id) => {
       const box = $(id);
       if (!box) return;
       box.innerHTML = TTL_OPTIONS.map((o) =>
@@ -183,13 +181,11 @@
 
   $('authBtn').onclick = () => login($('authUser').value.trim(), $('authPass').value, $('authBtn'));
   $('authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('authBtn').click(); });
-  $('demoBtn').onclick = () => login(CFG.demoUser, CFG.demoPass, $('demoBtn'));
   $('copyToken').onclick = () => copy(token.value, '令牌已复制');
   $('clearToken').onclick = () => {
     setToken(null);
     toast('已清除令牌，请重新获取');
     $('sec-auth').scrollIntoView({ behavior: 'smooth' });
-    if (IS_DEMO) setTimeout(() => $('demoBtn').focus(), 300);
   };
 
   // 从 JWT 里解出过期时间（authorize 弹窗里粘贴的令牌没有接口返回的 expireAt）
